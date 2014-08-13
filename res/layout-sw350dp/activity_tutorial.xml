@@ -1,0 +1,162 @@
+<RelativeLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:animateLayoutChanges="true"
+    android:id="@+id/tutorialRelativeLayout"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="@color/blue">
+
+    <ImageButton
+        android:layout_width="55dp"
+        android:layout_height="55dp"
+        android:id="@+id/navRight"
+        android:layout_centerVertical="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="5dp"
+        android:scaleType="fitXY"
+        android:src="@drawable/ic_nav_right"
+        android:background="@color/transparent_white" />
+
+    <ImageButton
+        android:layout_width="55dp"
+        android:layout_height="55dp"
+        android:id="@+id/navLeft"
+        android:layout_centerVertical="true"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="5dp"
+        android:background="@color/transparent_white"
+        android:src="@drawable/ic_nav_left"
+        android:scaleType="fitXY"
+        android:visibility="invisible" />
+
+    <ImageView
+        android:layout_width="110dp"
+        android:layout_height="110dp"
+        android:id="@+id/progressImage"
+        android:src="@drawable/ic_6_1"
+        android:scaleType="fitXY"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/tutorial_branding"
+        android:id="@+id/moonPiBrand"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:textColor="@color/tutorial_white"
+        android:layout_marginBottom="8dp"
+        android:textStyle="bold" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/tutorial_skip"
+        android:id="@+id/skip"
+        android:textColor="@color/tutorial_white"
+        android:background="@color/transparent_white"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:layout_alignBottom="@+id/moonPiBrand"
+        android:layout_alignRight="@+id/navRight"
+        android:layout_marginRight="18dp"
+        android:layout_marginBottom="8dp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/tutorial_welcometo"
+        android:id="@+id/welcomeTo"
+        android:textColor="@color/tutorial_white"
+        android:visibility="visible"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="30dp"
+        android:textStyle="bold"
+        android:textSize="30sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/tutorial_tapunlock"
+        android:id="@+id/tapunlock"
+        android:layout_below="@+id/welcomeTo"
+        android:layout_centerHorizontal="true"
+        android:textColor="@color/tutorial_white"
+        android:layout_marginTop="8dp"
+        android:textStyle="bold"
+        android:textSize="35sp"
+        android:visibility="visible" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/tutorial_description"
+        android:id="@+id/appDescription"
+        android:layout_below="@+id/tapunlock"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20dp"
+        android:textColor="@color/tutorial_white"
+        android:layout_toLeftOf="@+id/navRight"
+        android:layout_toRightOf="@+id/navLeft"
+        android:gravity="top|center"
+        android:layout_marginLeft="3dp"
+        android:layout_marginRight="3dp"
+        android:textStyle="italic"
+        android:visibility="visible" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/tutorial_navigation"
+        android:id="@+id/navigation"
+        android:textColor="@color/tutorial_white"
+        android:gravity="top|center"
+        android:layout_above="@+id/progressImage"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
+        android:layout_marginBottom="8dp"
+        android:visibility="visible"
+        android:textStyle="bold|italic" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/screenshotView"
+        android:layout_above="@+id/moonPiBrand"
+        android:layout_centerHorizontal="true"
+        android:src="@drawable/ic_tutorial2"
+        android:scaleType="fitXY"
+        android:layout_marginRight="35dp"
+        android:layout_marginLeft="35dp"
+        android:layout_marginBottom="18dp"
+        android:visibility="invisible"
+        android:layout_below="@+id/screenshotDescription"
+        android:layout_alignLeft="@+id/navLeft"
+        android:layout_alignRight="@+id/navRight" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/tutorial_screenshot2"
+        android:id="@+id/screenshotDescription"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:textColor="@color/tutorial_white"
+        android:visibility="invisible"
+        android:layout_marginTop="25dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:gravity="top|center"
+        android:layout_marginRight="10dp"
+        android:layout_marginLeft="10dp" />
+
+</RelativeLayout>

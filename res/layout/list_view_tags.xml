@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:focusableInTouchMode="false"
+    android:descendantFocusability="blocksDescendants"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/frame_background">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="@string/no_tag_name"
+        android:id="@+id/backgroundBlurValue"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="5dp"
+        android:maxLines="1"
+        android:layout_marginRight="8dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="@string/long_press_context"
+        android:id="@+id/longPress"
+        android:layout_below="@+id/backgroundBlurValue"
+        android:layout_alignLeft="@+id/backgroundBlurValue"
+        android:layout_marginTop="3dp"
+        android:textColor="@color/blue"
+        android:layout_marginRight="8dp"
+        android:paddingBottom="7dp" />
+
+    <View
+        android:layout_width="wrap_content"
+        android:layout_height="2dp"
+        android:background="@color/black_15"
+        android:id="@+id/shadow"
+        android:layout_below="@+id/longPress"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:paddingBottom="10dp" />
+
+</RelativeLayout>

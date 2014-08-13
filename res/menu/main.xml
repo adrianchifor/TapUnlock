@@ -1,0 +1,15 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".MainActivity" >
+
+    <item android:id="@+id/rate_app"
+        android:title="@string/rate_app"
+        android:orderInCategory="101"
+        android:showAsAction="never" />
+
+    <item android:id="@+id/tutorial"
+        android:title="@string/tutorial"
+        android:orderInCategory="102"
+        android:showAsAction="never" />
+
+</menu>
