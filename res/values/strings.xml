@@ -48,7 +48,7 @@
     <string name="no_button">No</string>
     <!-- -->
     <string name="toast_pin_set">PIN successfully set</string>
-    <string name="toast_pin_needs4digits">PIN needs to be 4 digits long</string>
+    <string name="toast_pin_needs4digits">PIN needs to be at least 4 digits long</string>
     <string name="toast_lock_set_pin">You must set a PIN before enabling the lockscreen</string>
     <string name="toast_lock_add_tag">You must add a Tag before enabling the lockscreen</string>
     <string name="toast_lock_enabled">NFC Lockscreen enabled</string>

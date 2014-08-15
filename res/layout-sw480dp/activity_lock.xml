@@ -17,7 +17,7 @@
         android:layout_height="80dp"
         android:background="@color/transparent_white"
         android:id="@+id/separator"
-        android:layout_marginTop="15dp"
+        android:layout_marginTop="20dp"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true" />
 
@@ -66,19 +66,9 @@
         android:text="@string/scan_to_unlock"
         android:id="@+id/unlockText"
         android:textColor="@color/white_90"
-        android:layout_marginTop="28dp"
+        android:layout_marginTop="35dp"
         android:layout_below="@+id/separator"
         android:layout_centerHorizontal="true" />
-
-    <ImageView
-        android:layout_width="110dp"
-        android:layout_height="110dp"
-        android:id="@+id/pinInput"
-        android:layout_below="@+id/separator"
-        android:src="@drawable/ic_4_0"
-        android:layout_marginTop="18dp"
-        android:layout_centerHorizontal="true"
-        android:scaleType="fitXY" />
 
     <ImageButton
         android:layout_width="90dp"

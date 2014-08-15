@@ -103,11 +103,7 @@ public class TutorialActivity extends Activity implements View.OnClickListener {
         if(v.getId() == R.id.navRight) {
             //if last page, launch MainActivity and finish
             if(page == 6) {
-                Intent intent = new Intent(this, MainActivity.class);
-
-                startActivity(intent);
-
-                finish();
+                onBackPressed();
                 return;
             }
 
@@ -201,11 +197,7 @@ public class TutorialActivity extends Activity implements View.OnClickListener {
 
         //if 'Skip' button pressed, launch MainActivity and finish
         else if(v.getId() == R.id.skip) {
-            Intent intent = new Intent(this, MainActivity.class);
-
-            startActivity(intent);
-
-            finish();
+            onBackPressed();
         }
     }
 }

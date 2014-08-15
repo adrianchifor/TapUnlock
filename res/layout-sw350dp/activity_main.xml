@@ -54,7 +54,7 @@
             android:ems="10"
             android:id="@+id/pinEdit"
             android:numeric="integer"
-            android:maxLength="4"
+            android:maxLength="6"
             android:gravity="center_horizontal"
             android:hint="@string/enter_pin_hint"
             android:layout_marginTop="22dp"
@@ -145,7 +145,7 @@
             android:textColor="@color/red"
             android:layout_alignTop="@+id/lockscreen_enabled_disabled"
             android:layout_toRightOf="@+id/lockscreen_enabled_disabled"
-            android:layout_marginLeft="8dp" />
+            android:layout_marginLeft="6dp" />
 
         <Switch
             android:layout_width="wrap_content"
@@ -210,7 +210,7 @@
             android:layout_alignLeft="@+id/pinTitle"
             android:layout_alignStart="@+id/pinTitle"
             android:layout_marginTop="12dp"
-            android:layout_marginLeft="20dp" />
+            android:layout_marginLeft="18dp" />
 
         <SeekBar
             android:layout_width="wrap_content"

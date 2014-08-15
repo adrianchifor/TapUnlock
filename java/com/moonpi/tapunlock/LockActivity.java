@@ -40,7 +40,6 @@ import android.view.View.OnTouchListener;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -96,11 +95,12 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     private WifiManager wifiManager;
     private ConnectivityManager connManager;
     private NetworkInfo isMobileDataOn;
-    private Vibrator v;
+    private Vibrator vibrator;
     private AudioManager am;
     private Camera cam;
     private Parameters camParam;
 
+    private Boolean vibratorAvailable; //true if device vibrator exists, false otherwise
     private Boolean flashlightAvailable; //true if FEATURE_FLASH exists, false otherwise
     private Boolean isFlashOn = false; //true if flash was turned on, false otherwise
     private ContentResolver cResolver; //content resolver for system settings get and put
@@ -121,7 +121,6 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     //layout items
     private View disableStatusBar;
     private TextView time, date, battery, unlockText;
-    private ImageView pinInput;
     private ImageButton ic_0, ic_1, ic_2, ic_3, ic_4, ic_5, ic_6, ic_7, ic_8,
             ic_9, wifi, data, flashlight, brightness, sound;
     private Button delete;
@@ -143,9 +142,16 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     protected Runnable pinLockedRunnable = new Runnable() {
         @Override
         public void run() {
-            v.vibrate(100);
-            if(nfcAdapter.isEnabled())
-                unlockText.setText(getResources().getString(R.string.scan_to_unlock));
+            if(vibratorAvailable)
+                vibrator.vibrate(150);
+
+            if(nfcAdapter != null) {
+                if(nfcAdapter.isEnabled())
+                    unlockText.setText(getResources().getString(R.string.scan_to_unlock));
+
+                else
+                    unlockText.setText(getResources().getString(R.string.scan_to_unlock_nfc_off));
+            }
 
             else
                 unlockText.setText(getResources().getString(R.string.scan_to_unlock_nfc_off));
@@ -270,14 +276,6 @@ public class LockActivity extends Activity implements View.OnClickListener, View
             this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         }
 
-        //when disableStatusBar view touched, reset screen brightness and consume touch
-        disableStatusBar.setOnTouchListener(new OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                return true;
-            }
-        });
-
 
         //to listen for calls, so user can accept or deny a call
         StateListener phoneStateListener = new StateListener();
@@ -285,10 +283,13 @@ public class LockActivity extends Activity implements View.OnClickListener, View
         telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
 
         activityManager = (ActivityManager) this.getSystemService(ACTIVITY_SERVICE);
-        v = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
+        vibrator = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
         am = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
         wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
         connManager = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        //check if device has vibrator and store true/false in var
+        vibratorAvailable = vibrator.hasVibrator();
 
         //get mobile data connection, to check whether connected or not
         isMobileDataOn = connManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
@@ -298,6 +299,14 @@ public class LockActivity extends Activity implements View.OnClickListener, View
 
 
         setContentView(R.layout.activity_lock);
+
+        //when disableStatusBar view touched, consume touch
+        disableStatusBar.setOnTouchListener(new OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                return true;
+            }
+        });
 
         //if Android 4.1 or lower or blur is 0 or blurred wallpaper doesn't exist
         //get default wallpaper and set as background drawable
@@ -345,7 +354,6 @@ public class LockActivity extends Activity implements View.OnClickListener, View
         date = (TextView)findViewById(R.id.date);
         battery = (TextView)findViewById(R.id.battery);
         unlockText = (TextView)findViewById(R.id.unlockText);
-        pinInput = (ImageView)findViewById(R.id.pinInput);
         ic_0 = (ImageButton)findViewById(R.id.ic_0);
         ic_1 = (ImageButton)findViewById(R.id.ic_1);
         ic_2 = (ImageButton)findViewById(R.id.ic_2);
@@ -785,13 +793,10 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     //method called each time the user presses a keypad button
     public void checkPIN() {
         if(!pinLocked) {
-            if(pinEntered.length() == 4) {
-                pinInput.setImageDrawable(getResources().getDrawable(R.drawable.ic_4_4));
-
+            if(pinEntered.length() == pin.length()) {
                 //if correct PIN entered, reset pinEntered, remove handle callbacks and messages,
                 //set home launcher activity component disabled and finish
                 if(pinEntered.equals(pin)) {
-                    pinInput.setImageDrawable(getResources().getDrawable(R.drawable.ic_4_0));
                     pinEntered = "";
 
                     mHandler.removeCallbacksAndMessages(null);
@@ -809,15 +814,19 @@ public class LockActivity extends Activity implements View.OnClickListener, View
                     if(pinAttempts > 0) {
                         pinAttempts -= 1;
 
-                        pinInput.setImageDrawable(getResources().getDrawable(R.drawable.ic_4_0));
                         pinEntered = "";
 
                         unlockText.postDelayed(new Runnable() {
                             @Override
                             public void run() {
                                 if(pinAttempts > 0) {
-                                    if (nfcAdapter.isEnabled())
-                                        unlockText.setText(getResources().getString(R.string.scan_to_unlock));
+                                    if(nfcAdapter != null) {
+                                        if(nfcAdapter.isEnabled())
+                                            unlockText.setText(getResources().getString(R.string.scan_to_unlock));
+
+                                        else
+                                            unlockText.setText(getResources().getString(R.string.scan_to_unlock_nfc_off));
+                                    }
 
                                     else
                                         unlockText.setText(getResources().getString(R.string.scan_to_unlock_nfc_off));
@@ -825,23 +834,31 @@ public class LockActivity extends Activity implements View.OnClickListener, View
                             }
                         }, 1000);
 
-                        v.vibrate(250);
+                        if(vibratorAvailable)
+                            vibrator.vibrate(250);
+
                         unlockText.setText(getResources().getString(R.string.wrong_pin));
                     }
 
                     //0 attempts left, vibrate, reset pinEntered and pinAttempts,
                     //set pinLocked to true, store and post reset PIN keypad runnable in 30s
                     else {
-                        v.vibrate(500);
+                        if(vibratorAvailable)
+                            vibrator.vibrate(500);
 
-                        if(nfcAdapter.isEnabled())
-                            unlockText.setText(getResources().getString(R.string.pin_locked));
+                        if(nfcAdapter != null) {
+                            if(nfcAdapter.isEnabled())
+                                unlockText.setText(getResources().getString(R.string.pin_locked));
+
+                            else
+                                unlockText.setText(getResources().getString(R.string.pin_locked_nfc_off));
+                        }
 
                         else
                             unlockText.setText(getResources().getString(R.string.pin_locked_nfc_off));
 
+
                         pinEntered = "";
-                        pinInput.setImageDrawable(getResources().getDrawable(R.drawable.ic_4_0));
 
                         pinLocked = true;
 
@@ -849,6 +866,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
 
                         try {
                             settings.put("pinLocked", true);
+
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -859,23 +877,6 @@ public class LockActivity extends Activity implements View.OnClickListener, View
                     }
                 }
             }
-
-            //if pin lengths different than 4, update progress drawable accordingly
-            else if (pinEntered.length() == 0) {
-                pinInput.setImageDrawable(getResources().getDrawable(R.drawable.ic_4_0));
-            }
-
-            else if (pinEntered.length() == 1) {
-                pinInput.setImageDrawable(getResources().getDrawable(R.drawable.ic_4_1));
-            }
-
-            else if (pinEntered.length() == 2) {
-                pinInput.setImageDrawable(getResources().getDrawable(R.drawable.ic_4_2));
-            }
-
-            else if (pinEntered.length() == 3) {
-                pinInput.setImageDrawable(getResources().getDrawable(R.drawable.ic_4_3));
-            }
         }
     }
 
@@ -884,70 +885,70 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     public void onClick(View v) {
         //if PIN keypad button pressed, add pressed number to pinEntered and call checkPin method
         if(v.getId() == R.id.ic_0) {
-            if(pinEntered.length() < 4)
+            if(pinEntered.length() < pin.length())
                 pinEntered += "0";
 
             checkPIN();
         }
 
         else if(v.getId() == R.id.ic_1) {
-            if(pinEntered.length() < 4)
+            if(pinEntered.length() < pin.length())
                 pinEntered += "1";
 
             checkPIN();
         }
 
         else if(v.getId() == R.id.ic_2) {
-            if(pinEntered.length() < 4)
+            if(pinEntered.length() < pin.length())
                 pinEntered += "2";
 
             checkPIN();
         }
 
         else if(v.getId() == R.id.ic_3) {
-            if(pinEntered.length() < 4)
+            if(pinEntered.length() < pin.length())
                 pinEntered += "3";
 
             checkPIN();
         }
 
         else if(v.getId() == R.id.ic_4) {
-            if(pinEntered.length() < 4)
+            if(pinEntered.length() < pin.length())
                 pinEntered += "4";
 
             checkPIN();
         }
 
         else if(v.getId() == R.id.ic_5) {
-            if(pinEntered.length() < 4)
+            if(pinEntered.length() < pin.length())
                 pinEntered += "5";
 
             checkPIN();
         }
 
         else if(v.getId() == R.id.ic_6) {
-            if(pinEntered.length() < 4)
+            if(pinEntered.length() < pin.length())
                 pinEntered += "6";
 
             checkPIN();
         }
 
         else if(v.getId() == R.id.ic_7) {
-            if(pinEntered.length() < 4)
+            if(pinEntered.length() < pin.length())
                 pinEntered += "7";
 
             checkPIN();
         }
 
         else if(v.getId() == R.id.ic_8) {
-            if(pinEntered.length() < 4)
+            if(pinEntered.length() < pin.length())
                 pinEntered += "8";
 
             checkPIN();
         }
 
         else if(v.getId() == R.id.ic_9) {
-            if(pinEntered.length() < 4)
+            if(pinEntered.length() < pin.length())
                 pinEntered += "9";
 
             checkPIN();
@@ -956,16 +957,23 @@ public class LockActivity extends Activity implements View.OnClickListener, View
         //if delete pressed, delete last element of pinEntered; if pinEntered is empty, do nothing
         else if(v.getId() == R.id.delete) {
             if(pinEntered.length() > 0) {
-                if(pinEntered.length() == 1)
+                if(pinEntered.length() == 1) {
                     pinEntered = "";
 
+                    if(vibratorAvailable)
+                        vibrator.vibrate(50);
+
+                    return;
+                }
+
                 else {
-                    String newString = pinEntered.substring(0, pinEntered.length() - 1);
-                    pinEntered = newString;
+                    pinEntered = pinEntered.substring(0, pinEntered.length() - 1);
+                    return;
                 }
             }
 
-            checkPIN();
+            if(vibratorAvailable)
+                vibrator.vibrate(50);
         }
 
 
@@ -1195,105 +1203,114 @@ public class LockActivity extends Activity implements View.OnClickListener, View
         if(packageManager != null)
             packageManager.setComponentEnabledSetting(cnHome, componentEnabled, PackageManager.DONT_KILL_APP);
 
-        if(nfcAdapter.isEnabled()) {
-            //if Android version lower than 4.4, use foreground dispatch method with tech filters
-            if(Build.VERSION.SDK_INT < 19) {
-                nfcAdapter.enableForegroundDispatch(this, pIntent,
-                        new IntentFilter[]{new IntentFilter(NfcAdapter.ACTION_TECH_DISCOVERED)},
-                        new String[][]{new String[]{"android.nfc.tech.MifareClassic"},
-                                new String[]{"android.nfc.tech.MifareUltralight"},
-                                new String[]{"android.nfc.tech.NfcA"},
-                                new String[]{"android.nfc.tech.NfcB"},
-                                new String[]{"android.nfc.tech.NfcF"},
-                                new String[]{"android.nfc.tech.NfcV"},
-                                new String[]{"android.nfc.tech.Ndef"},
-                                new String[]{"android.nfc.tech.IsoDep"},
-                                new String[]{"android.nfc.tech.NdefFormatable"}
+
+        if(nfcAdapter != null) {
+            if(nfcAdapter.isEnabled()) {
+                //if Android version lower than 4.4, use foreground dispatch method with tech filters
+                if(Build.VERSION.SDK_INT < 19) {
+                    nfcAdapter.enableForegroundDispatch(this, pIntent,
+                            new IntentFilter[]{new IntentFilter(NfcAdapter.ACTION_TECH_DISCOVERED)},
+                            new String[][]{new String[]{"android.nfc.tech.MifareClassic"},
+                                    new String[]{"android.nfc.tech.MifareUltralight"},
+                                    new String[]{"android.nfc.tech.NfcA"},
+                                    new String[]{"android.nfc.tech.NfcB"},
+                                    new String[]{"android.nfc.tech.NfcF"},
+                                    new String[]{"android.nfc.tech.NfcV"},
+                                    new String[]{"android.nfc.tech.Ndef"},
+                                    new String[]{"android.nfc.tech.IsoDep"},
+                                    new String[]{"android.nfc.tech.NdefFormatable"}
+                            }
+                    );
+                }
+
+                //if Android version 4.4 or bigger, use enableReaderMode method
+                else {
+                    nfcAdapter.enableReaderMode(this, new NfcAdapter.ReaderCallback() {
+
+                        @Override
+                        public void onTagDiscovered(Tag tag) {
+                            //get tag id and convert to readable string
+                            byte[] tagID = tag.getId();
+                            String tagDiscovered = bytesToHex(tagID);
+
+                            if(!tagDiscovered.equals("")) {
+                                //loop through added NFC tags
+                                for(int i = 0; i < tags.length(); i++) {
+                                    try {
+                                        //when tag discovered id is equal to one of the stored tags id
+                                        if(tagDiscovered.equals(tags.getJSONObject(i).getString("tagID"))) {
+                                            //reset tagDiscovered string, set pinLocked false and store
+                                            //remove handle callback and messages
+                                            //disable home launcher activity component and finish
+
+                                            tagDiscovered = "";
+
+                                            pinLocked = false;
+                                            settings.put("pinLocked", false);
+
+                                            writeToJSON();
+
+                                            mHandler.removeCallbacksAndMessages(null);
+
+                                            packageManager.setComponentEnabledSetting(cnHome, componentDisabled, PackageManager.DONT_KILL_APP);
+
+                                            finish();
+                                            overridePendingTransition(0, 0);
+                                            return;
+                                        }
+
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+
+                                //when tag discovered id is not correct
+                                //vibrate, display 'Wrong NFC Tag' and after 1.5s switch back to normal
+                                unlockText.postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        if(!pinLocked) {
+                                            runOnUiThread(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    unlockText.setText(getResources().getString(R.string.scan_to_unlock));
+                                                }
+                                            });
+                                        } else {
+                                            runOnUiThread(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    unlockText.setText(getResources().getString(R.string.pin_locked));
+                                                }
+                                            });
+                                        }
+                                    }
+                                }, 1500);
+
+                                if(vibratorAvailable)
+                                    vibrator.vibrate(250);
+
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        unlockText.setText(getResources().getString(R.string.wrong_tag));
+                                    }
+                                });
+                            }
                         }
-                );
+                    }, NfcAdapter.FLAG_READER_NO_PLATFORM_SOUNDS | NfcAdapter.FLAG_READER_NFC_A |
+                            NfcAdapter.FLAG_READER_NFC_B | NfcAdapter.FLAG_READER_NFC_BARCODE |
+                            NfcAdapter.FLAG_READER_NFC_F | NfcAdapter.FLAG_READER_NFC_V | NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK, null);
+                }
             }
 
-            //if Android version 4.4 or bigger, use enableReaderMode method
+            //if NFC is off
             else {
-                nfcAdapter.enableReaderMode(this, new NfcAdapter.ReaderCallback() {
+                if(pinLocked)
+                    unlockText.setText(getResources().getString(R.string.pin_locked_nfc_off));
 
-                    @Override
-                    public void onTagDiscovered(Tag tag) {
-                        //get tag id and convert to readable string
-                        byte[] tagID = tag.getId();
-                        String tagDiscovered = bytesToHex(tagID);
-
-                        if(!tagDiscovered.equals("")) {
-                            //loop through added NFC tags
-                            for(int i = 0; i < tags.length(); i++) {
-                                try {
-                                    //when tag discovered id is equal to one of the stored tags id
-                                    if(tagDiscovered.equals(tags.getJSONObject(i).getString("tagID"))) {
-                                        //reset tagDiscovered string, set pinLocked false and store
-                                        //remove handle callback and messages
-                                        //disable home launcher activity component and finish
-
-                                        tagDiscovered = "";
-
-                                        pinLocked = false;
-
-                                        settings.put("pinLocked", false);
-
-                                        writeToJSON();
-
-                                        mHandler.removeCallbacksAndMessages(null);
-
-                                        packageManager.setComponentEnabledSetting(cnHome, componentDisabled, PackageManager.DONT_KILL_APP);
-
-                                        finish();
-                                        overridePendingTransition(0, 0);
-
-                                        return;
-                                    }
-
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-
-                            //when tag discovered id is not correct
-                            //vibrate, display 'Wrong NFC Tag' and after 1.5s switch back to normal
-                            unlockText.postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                    if (!pinLocked) {
-                                        runOnUiThread(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                unlockText.setText(getResources().getString(R.string.scan_to_unlock));
-                                            }
-                                        });
-                                    }
-
-                                    else {
-                                        runOnUiThread(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                unlockText.setText(getResources().getString(R.string.pin_locked));
-                                            }
-                                        });
-                                    }
-                                }
-                            }, 1500);
-
-                            v.vibrate(250);
-
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    unlockText.setText(getResources().getString(R.string.wrong_tag));
-                                }
-                            });
-                        }
-                    }
-                }, NfcAdapter.FLAG_READER_NO_PLATFORM_SOUNDS | NfcAdapter.FLAG_READER_NFC_A |
-                        NfcAdapter.FLAG_READER_NFC_B | NfcAdapter.FLAG_READER_NFC_BARCODE |
-                        NfcAdapter.FLAG_READER_NFC_F | NfcAdapter.FLAG_READER_NFC_V | NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK, null);
+                else
+                    unlockText.setText(getResources().getString(R.string.scan_to_unlock_nfc_off));
             }
         }
 
@@ -1331,9 +1348,11 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     protected void onPause() {
         super.onPause();
 
-        if(isFlashOn) {
-            flashlightOn(false);
-            this.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        if(flashlightAvailable) {
+            if(isFlashOn) {
+                flashlightOn(false);
+                this.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            }
         }
 
         if(nfcAdapter != null)
@@ -1373,8 +1392,10 @@ public class LockActivity extends Activity implements View.OnClickListener, View
             e.printStackTrace();
         }
 
-        if(isFlashOn)
-            this.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+        if(flashlightAvailable)
+            if(isFlashOn)
+                this.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         if(Build.VERSION.SDK_INT >= 19) {
             this.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
@@ -1431,7 +1452,6 @@ public class LockActivity extends Activity implements View.OnClickListener, View
                             tagDiscovered = "";
 
                             pinLocked = false;
-
                             settings.put("pinLocked", false);
 
                             writeToJSON();
@@ -1442,7 +1462,6 @@ public class LockActivity extends Activity implements View.OnClickListener, View
 
                             finish();
                             overridePendingTransition(0, 0);
-
                             return;
                         }
 
@@ -1464,7 +1483,9 @@ public class LockActivity extends Activity implements View.OnClickListener, View
                     }
                 }, 1500);
 
-                v.vibrate(250);
+                if(vibratorAvailable)
+                    vibrator.vibrate(250);
+
                 unlockText.setText(getResources().getString(R.string.wrong_tag));
             }
         }

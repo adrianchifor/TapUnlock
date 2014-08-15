@@ -86,7 +86,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
     root_OBJ:{
         settings_OBJ:{
             "lockscreen":"(true/false)",
-            "pin":"(1234)",
+            "pin":"(4-6 digits)",
             "pinLocked":"(true/false)",
             "blur":"(0-25)",
             "tutorial":"(true/false)",
@@ -500,7 +500,8 @@ public class MainActivity extends Activity implements View.OnClickListener,
     public void killForegroundDispatch() {
         if(dialogCancelled) {
             try {
-                nfcAdapter.disableForegroundDispatch(this);
+                if(nfcAdapter != null)
+                    nfcAdapter.disableForegroundDispatch(this);
 
             } catch (IllegalStateException e) {
                 e.printStackTrace();
@@ -723,7 +724,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
                             JSONArray newArray = new JSONArray();
 
                             //copy contents to new array, without the deleted item
-                            for(int i=0; i<tags.length(); i++) {
+                            for(int i = 0; i < tags.length(); i++) {
                                 if(i != info.position) {
                                     try {
                                         newArray.put(tags.get(i));
@@ -788,7 +789,6 @@ public class MainActivity extends Activity implements View.OnClickListener,
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-
         //if Rate app pressed, ask user if it's ok to leave app and go to Play Store
         //if yes, open app in Play Store; if no, close dialog
         if(item.getItemId() == R.id.rate_app) {
@@ -819,7 +819,6 @@ public class MainActivity extends Activity implements View.OnClickListener,
             return true;
         }
 
-
         //if Tutorial pressed, launch tutorial activity
         else if(item.getItemId() == R.id.tutorial) {
             Intent intent = new Intent(this, TutorialActivity.class);
@@ -837,7 +836,8 @@ public class MainActivity extends Activity implements View.OnClickListener,
     public void onClick(View v) {
         //if OK(setPin) clicked, ask user if sure; if yes, store PIN; else, go back
         if(v.getId() == R.id.setPin) {
-            if(pinEdit.length() == 4) {
+            //if PIN length between 4 and 6, store PIN and toast successful
+            if(pinEdit.length() >= 4 && pinEdit.length() <= 6) {
                 new AlertDialog.Builder(this)
                         .setMessage(R.string.set_pin_confirmation)
                         .setPositiveButton(R.string.yes_button, new DialogInterface.OnClickListener() {
@@ -882,7 +882,6 @@ public class MainActivity extends Activity implements View.OnClickListener,
         //store new blur var, if blur bigger than 0 re-blur wallpaper
         else if(v.getId() == R.id.refreshWallpaper) {
             if(Build.VERSION.SDK_INT > 16) {
-
                 try {
                     settings.put("blur", blur);
 
@@ -963,25 +962,47 @@ public class MainActivity extends Activity implements View.OnClickListener,
 
         //if '+' pressed
         else if(v.getId() == R.id.newTag) {
-            //if NFC is on, show scan dialog and enableForegroundDispatch
-            if(nfcAdapter.isEnabled()) {
-                MainActivity.this.showDialog(DIALOG_READ);
+            if(nfcAdapter != null) {
+                //if NFC is on, show scan dialog and enableForegroundDispatch
+                if(nfcAdapter.isEnabled()) {
+                    MainActivity.this.showDialog(DIALOG_READ);
 
-                nfcAdapter.enableForegroundDispatch(this, pIntent,
-                        new IntentFilter[] {new IntentFilter(NfcAdapter.ACTION_TECH_DISCOVERED)},
-                        new String[][] {new String[] {"android.nfc.tech.MifareClassic"},
-                                new String[] {"android.nfc.tech.MifareUltralight"},
-                                new String[] {"android.nfc.tech.NfcA"},
-                                new String[] {"android.nfc.tech.NfcB"},
-                                new String[] {"android.nfc.tech.NfcF"},
-                                new String[] {"android.nfc.tech.NfcV"},
-                                new String[] {"android.nfc.tech.Ndef"},
-                                new String[] {"android.nfc.tech.IsoDep"},
-                                new String[] {"android.nfc.tech.NdefFormatable"}
-                        });
+                    nfcAdapter.enableForegroundDispatch(this, pIntent,
+                            new IntentFilter[]{new IntentFilter(NfcAdapter.ACTION_TECH_DISCOVERED)},
+                            new String[][]{new String[]{"android.nfc.tech.MifareClassic"},
+                                    new String[]{"android.nfc.tech.MifareUltralight"},
+                                    new String[]{"android.nfc.tech.NfcA"},
+                                    new String[]{"android.nfc.tech.NfcB"},
+                                    new String[]{"android.nfc.tech.NfcF"},
+                                    new String[]{"android.nfc.tech.NfcV"},
+                                    new String[]{"android.nfc.tech.Ndef"},
+                                    new String[]{"android.nfc.tech.IsoDep"},
+                                    new String[]{"android.nfc.tech.NdefFormatable"}
+                            }
+                    );
+                }
+
+                //NFC is off, prompt user to enable it and send him to NFC settings
+                else {
+                    new AlertDialog.Builder(this)
+                            .setTitle(R.string.nfc_off_dialog_title)
+                            .setMessage(R.string.nfc_off_dialog_message)
+                            .setPositiveButton(R.string.yes_button, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Intent intent = new Intent(Settings.ACTION_NFC_SETTINGS);
+                                    startActivity(intent);
+                                }
+                            }).setNegativeButton(R.string.no_button, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            //do nothing, close dialog
+                        }
+                    }).show();
+                }
             }
 
-            //NFC is off, prompt user to enable it and send him to NFC settings
+            //NFC adapter is null
             else {
                 new AlertDialog.Builder(this)
                         .setTitle(R.string.nfc_off_dialog_title)
@@ -1101,19 +1122,18 @@ public class MainActivity extends Activity implements View.OnClickListener,
 
                 //set lockscreen false, stop service and store
                 try {
-                    if(settings.getBoolean("lockscreen")) {
+                    if(settings.getBoolean("lockscreen"))
                         settings.put("lockscreen", false);
-                        lockscreen = false;
-
-                        enabled_disabled.setText(R.string.lockscreen_disabled);
-                        enabled_disabled.setTextColor(getResources().getColor(R.color.red));
-                    }
 
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
 
                 writeToJSON();
+
+                lockscreen = false;
+                enabled_disabled.setText(R.string.lockscreen_disabled);
+                enabled_disabled.setTextColor(getResources().getColor(R.color.red));
 
                 killService(this);
 
@@ -1126,16 +1146,16 @@ public class MainActivity extends Activity implements View.OnClickListener,
         else {
             try {
                 settings.put("lockscreen", false);
-                lockscreen = false;
-
-                enabled_disabled.setText(R.string.lockscreen_disabled);
-                enabled_disabled.setTextColor(getResources().getColor(R.color.red));
 
             } catch (JSONException e) {
                 e.printStackTrace();
             }
 
             writeToJSON();
+
+            lockscreen = false;
+            enabled_disabled.setText(R.string.lockscreen_disabled);
+            enabled_disabled.setTextColor(getResources().getColor(R.color.red));
 
             killService(this);
 
