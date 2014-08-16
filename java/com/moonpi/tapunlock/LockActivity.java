@@ -100,8 +100,8 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     private Camera cam;
     private Parameters camParam;
 
-    private Boolean vibratorAvailable; //true if device vibrator exists, false otherwise
-    private Boolean flashlightAvailable; //true if FEATURE_FLASH exists, false otherwise
+    private Boolean vibratorAvailable = false; //true if device vibrator exists, false otherwise
+    private Boolean flashlightAvailable = false; //true if FEATURE_FLASH exists, false otherwise
     private Boolean isFlashOn = false; //true if flash was turned on, false otherwise
     private ContentResolver cResolver; //content resolver for system settings get and put
     private int brightnessMode = -1; //0 (LOW), 1 (MEDIUM), 2(HIGH) and 3(AUTO)
@@ -1102,6 +1102,17 @@ public class LockActivity extends Activity implements View.OnClickListener, View
         }
     }
 
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+
+        //if lockscreen window doesn't have focus, dismiss system and 3rd-party dialogs
+        if(!hasFocus) {
+            Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
+            sendBroadcast(closeDialog);
+        }
+    }
 
     //if the user wants to leave the app like pressing recent apps button, move task to queue front
     @Override
