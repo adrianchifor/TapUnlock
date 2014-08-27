@@ -78,26 +78,23 @@ public class MainActivity extends Activity implements View.OnClickListener,
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
-    */
 
 
-    /*
-    JSON file Structure:
+    JSON file structure:
     root_OBJ:{
         settings_OBJ:{
-            "lockscreen":"(true/false)",
-            "pin":"(4-6 digits)",
-            "pinLocked":"(true/false)",
-            "blur":"(0-25)",
-            "tutorial":"(true/false)",
+            "lockscreen":true/false,
+            "pin":"4-6 digits",
+            "pinLocked":true/false,
+            "blur":0-25,
+            "tutorial":true/false,
             tags_ARR:[
-                {"tagName":"(Bracelet)", "tagID":"(86ja8asdbb2385)"},
-                {"tagName":"(Ring)", "tagID":"(r2365sd98123sj)"} etc.
+                {"tagName":"Bracelet", "tagID":"86ja8asdbb2385"},
+                {"tagName":"Ring", "tagID":"r2365sd98123sj"} etc.
             ]
         }
     }
     */
-
 
     private static final int DIALOG_READ = 1; //int for 'Scan NFC Tag' dialog
     private static final int DIALOG_SET_TAGNAME = 2; //int for 'Set Tag name' dialog
@@ -109,12 +106,8 @@ public class MainActivity extends Activity implements View.OnClickListener,
     //layout items
     private ScrollView scrollView;
     private EditText pinEdit;
-    private Button setPin;
-    private ImageButton newTag;
-    private Switch toggle;
     private SeekBar seekBar;
     private ProgressBar progressBar;
-    private Button refreshWallpaper;
     private TextView enabled_disabled, backgroundBlurValue, noTags;
     private ListView listView;
 
@@ -130,10 +123,9 @@ public class MainActivity extends Activity implements View.OnClickListener,
     private int blur;
     private Boolean tutorial;
 
-    private String tagID; //ID of tag discovered
+    private String tagID = ""; //ID of tag discovered
     private Boolean dialogCancelled = false; //var for when 'Scan NFC Tag' dialog is called
     private Boolean onStart = false; //var for when lockscreen is enabled when app started
-
 
 
     //Custom tag adapter class (to populate NFC tags listView)
@@ -151,7 +143,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
 
         @Override
         public int getCount() {
-            if(this.adapterData != null)
+            if (this.adapterData != null)
                 return this.adapterData.length();
 
             else
@@ -160,7 +152,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
 
         @Override
         public JSONObject getItem(int position) {
-            if(this.adapterData != null)
+            if (this.adapterData != null)
                 return this.adapterData.optJSONObject(position);
 
             else
@@ -177,7 +169,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
 
-            if(convertView == null)
+            if (convertView == null)
                 convertView = this.parentActivity.getLayoutInflater().inflate(R.layout.list_view_tags, null);
 
             TextView text = (TextView) convertView.findViewById(R.id.backgroundBlurValue);
@@ -185,7 +177,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
             JSONObject jsonData = getItem(position);
 
             //set listView item text to tagName
-            if(jsonData != null) {
+            if (jsonData != null) {
                 try {
                     String data = jsonData.getString("tagName");
                     text.setText(data);
@@ -213,10 +205,9 @@ public class MainActivity extends Activity implements View.OnClickListener,
         int actionBarTitle = Resources.getSystem().getIdentifier("action_bar_title", "id", "android");
         TextView actionBarTitleView = (TextView) getWindow().findViewById(actionBarTitle);
 
-        if(actionBarTitleView != null) {
+        if (actionBarTitleView != null) {
             actionBarTitleView.setTypeface(lobsterTwo);
         }
-
 
         setContentView(R.layout.activity_main);
 
@@ -239,12 +230,12 @@ public class MainActivity extends Activity implements View.OnClickListener,
         //if tutorial boolean is true (app started for the first time)
         //re-create settings file, set tutorial boolean to false and launch tutorial
         try {
-            if(settings.getBoolean("tutorial")) {
+            if (settings.getBoolean("tutorial")) {
                 File file = new File(getFilesDir(), "settings.json");
                 boolean deleted = file.delete();
 
                 //if file successfully deleted, re-create settings file
-                if(deleted) {
+                if (deleted) {
                     readFromJSON();
                     writeToJSON();
                     readFromJSON();
@@ -268,7 +259,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
 
 
         //if Android 4.2 or bigger
-        if(Build.VERSION.SDK_INT > 16) {
+        if (Build.VERSION.SDK_INT > 16) {
             //check if TapUnlock folder exists, if not, create directory
             File folder = new File(Environment.getExternalStorageDirectory() + "/TapUnlock");
             boolean folderSuccess = true;
@@ -279,11 +270,11 @@ public class MainActivity extends Activity implements View.OnClickListener,
 
             try {
                 //if blur var bigger than 0
-                if(settings.getInt("blur") > 0) {
+                if (settings.getInt("blur") > 0) {
                     //if folder exists or successfully created
-                    if(folderSuccess) {
+                    if (folderSuccess) {
                         //if blurred wallpaper file doesn't exist
-                        if(!ImageUtils.doesBlurredWallpaperExist()) {
+                        if (!ImageUtils.doesBlurredWallpaperExist()) {
                             //get default wallpaper
                             WallpaperManager wallpaperManager = WallpaperManager.getInstance(this);
                             final Drawable wallpaperDrawable = wallpaperManager.getFastDrawable();
@@ -312,17 +303,16 @@ public class MainActivity extends Activity implements View.OnClickListener,
             }
         }
 
-
         //initialize layout items
         pinEdit = (EditText)findViewById(R.id.pinEdit);
         pinEdit.setImeOptions(EditorInfo.IME_ACTION_DONE);
-        setPin = (Button)findViewById(R.id.setPin);
-        newTag = (ImageButton)findViewById(R.id.newTag);
+        Button setPin = (Button) findViewById(R.id.setPin);
+        ImageButton newTag = (ImageButton) findViewById(R.id.newTag);
         enabled_disabled = (TextView)findViewById(R.id.enabled_disabled);
-        toggle = (Switch)findViewById(R.id.toggle);
+        Switch toggle = (Switch) findViewById(R.id.toggle);
         seekBar = (SeekBar)findViewById(R.id.seekBar);
         progressBar = (ProgressBar)findViewById(R.id.progressBar);
-        refreshWallpaper = (Button)findViewById(R.id.refreshWallpaper);
+        Button refreshWallpaper = (Button) findViewById(R.id.refreshWallpaper);
         listView = (ListView)findViewById(R.id.listView);
         backgroundBlurValue = (TextView)findViewById(R.id.backgroundBlurValue);
         noTags = (TextView)findViewById(R.id.noTags);
@@ -354,7 +344,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
         updateListViewHeight(listView);
 
         //if no tags, show 'Press + to add Tags' textView
-        if(tags.length() == 0)
+        if (tags.length() == 0)
             noTags.setVisibility(View.VISIBLE);
 
         else
@@ -372,7 +362,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
 
         //if lockscreen enabled, initialize switch, text and start service
         try {
-            if(settings.getBoolean("lockscreen")) {
+            if (settings.getBoolean("lockscreen")) {
                 onStart = true;
                 enabled_disabled.setText(R.string.lockscreen_enabled);
                 enabled_disabled.setTextColor(getResources().getColor(R.color.green));
@@ -391,17 +381,17 @@ public class MainActivity extends Activity implements View.OnClickListener,
     public static void updateListViewHeight(ListView myListView) {
         ListAdapter myListAdapter = myListView.getAdapter();
 
-        if(myListAdapter == null)
+        if (myListAdapter == null)
             return;
 
         //get listView height
         int totalHeight = myListView.getPaddingTop() + myListView.getPaddingBottom();
         int adapterCount = myListAdapter.getCount();
 
-        for(int i = 0; i < adapterCount; i++) {
+        for (int i = 0; i < adapterCount; i++) {
             View listItem = myListAdapter.getView(i, null, myListView);
 
-            if(listItem instanceof ViewGroup) {
+            if (listItem instanceof ViewGroup) {
                 listItem.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
                                                                     ViewGroup.LayoutParams.WRAP_CONTENT));
             }
@@ -480,7 +470,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
                 settings.put("pin", "");
                 settings.put("pinLocked", false);
 
-                if(Build.VERSION.SDK_INT > 16)
+                if (Build.VERSION.SDK_INT > 16)
                     settings.put("blur", 15);
 
                 else
@@ -498,9 +488,9 @@ public class MainActivity extends Activity implements View.OnClickListener,
 
     //stop NFC tag discovery when 'Cancel' pressed
     public void killForegroundDispatch() {
-        if(dialogCancelled) {
+        if (dialogCancelled) {
             try {
-                if(nfcAdapter != null)
+                if (nfcAdapter != null)
                     nfcAdapter.disableForegroundDispatch(this);
 
             } catch (IllegalStateException e) {
@@ -543,7 +533,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
         l.addView(tagTitle);
 
         //dialog that shows scan tag image
-        if(id == DIALOG_READ) {
+        if (id == DIALOG_READ) {
             return new AlertDialog.Builder(this)
                     .setTitle(R.string.scan_tag_dialog_title)
                     .setView(view)
@@ -559,7 +549,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
         }
 
         //dialog that asks for tagName and stores it after 'Ok' pressed
-        else if(id == DIALOG_SET_TAGNAME) {
+        else if (id == DIALOG_SET_TAGNAME) {
             tagTitle.requestFocus();
             return new AlertDialog.Builder(this)
                     .setTitle(R.string.set_tag_name_dialog_title)
@@ -573,6 +563,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
                             try {
                                 newTag.put("tagName", tagTitle.getText());
                                 newTag.put("tagID", tagID);
+
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
@@ -585,7 +576,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
 
                             updateListViewHeight(listView);
 
-                            if(tags.length() == 0)
+                            if (tags.length() == 0)
                                 noTags.setVisibility(View.VISIBLE);
 
                             else
@@ -633,7 +624,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
         final AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
 
         //if Rename Tag pressed
-        if(item.getTitle().equals(getResources().getString(R.string.rename_context_menu))) {
+        if (item.getTitle().equals(getResources().getString(R.string.rename_context_menu))) {
             //create new EdiText and configure
             final EditText tagTitle = new EditText(this);
             tagTitle.setSingleLine(true);
@@ -649,6 +640,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
             try {
                 assert info != null;
                 tagTitle.setText(tags.getJSONObject(info.position).getString("tagName"));
+
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -702,9 +694,10 @@ public class MainActivity extends Activity implements View.OnClickListener,
 
 
         //if Delete Tag pressed
-        else if(item.getTitle().equals(getResources().getString(R.string.delete_context_menu))) {
+        else if (item.getTitle().equals(getResources().getString(R.string.delete_context_menu))) {
             //construct dialog message
-            String dialogMessage;
+            String dialogMessage = "";
+
             assert info != null;
             try {
                 dialogMessage = getResources().getString(R.string.delete_context_menu_dialog1) + " '"
@@ -724,10 +717,11 @@ public class MainActivity extends Activity implements View.OnClickListener,
                             JSONArray newArray = new JSONArray();
 
                             //copy contents to new array, without the deleted item
-                            for(int i = 0; i < tags.length(); i++) {
-                                if(i != info.position) {
+                            for (int i = 0; i < tags.length(); i++) {
+                                if (i != info.position) {
                                     try {
                                         newArray.put(tags.get(i));
+
                                     } catch (JSONException e) {
                                         e.printStackTrace();
                                     }
@@ -754,7 +748,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
                             updateListViewHeight(listView);
 
                             //if no tags, show 'Press + to add Tags' textView
-                            if(tags.length() == 0)
+                            if (tags.length() == 0)
                                 noTags.setVisibility(View.VISIBLE);
 
                             else
@@ -791,7 +785,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
     public boolean onOptionsItemSelected(MenuItem item) {
         //if Rate app pressed, ask user if it's ok to leave app and go to Play Store
         //if yes, open app in Play Store; if no, close dialog
-        if(item.getItemId() == R.id.rate_app) {
+        if (item.getItemId() == R.id.rate_app) {
             final String appPackageName = getPackageName(); //getPackageName() from Context or Activity object
 
             new AlertDialog.Builder(this)
@@ -820,7 +814,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
         }
 
         //if Tutorial pressed, launch tutorial activity
-        else if(item.getItemId() == R.id.tutorial) {
+        else if (item.getItemId() == R.id.tutorial) {
             Intent intent = new Intent(this, TutorialActivity.class);
 
             startActivity(intent);
@@ -835,9 +829,9 @@ public class MainActivity extends Activity implements View.OnClickListener,
     @Override
     public void onClick(View v) {
         //if OK(setPin) clicked, ask user if sure; if yes, store PIN; else, go back
-        if(v.getId() == R.id.setPin) {
+        if (v.getId() == R.id.setPin) {
             //if PIN length between 4 and 6, store PIN and toast successful
-            if(pinEdit.length() >= 4 && pinEdit.length() <= 6) {
+            if (pinEdit.length() >= 4 && pinEdit.length() <= 6) {
                 new AlertDialog.Builder(this)
                         .setMessage(R.string.set_pin_confirmation)
                         .setPositiveButton(R.string.yes_button, new DialogInterface.OnClickListener() {
@@ -880,8 +874,8 @@ public class MainActivity extends Activity implements View.OnClickListener,
 
         //if 'Refresh wallpaper' pressed, check if Android 4.2 or above, if yes
         //store new blur var, if blur bigger than 0 re-blur wallpaper
-        else if(v.getId() == R.id.refreshWallpaper) {
-            if(Build.VERSION.SDK_INT > 16) {
+        else if (v.getId() == R.id.refreshWallpaper) {
+            if (Build.VERSION.SDK_INT > 16) {
                 try {
                     settings.put("blur", blur);
 
@@ -892,7 +886,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
                 writeToJSON();
 
                 //if blur is 0, don't change anything, just toast
-                if(blur == 0) {
+                if (blur == 0) {
                     Toast toast = Toast.makeText(getApplicationContext(),
                             R.string.toast_wallpaper_refreshed,
                             Toast.LENGTH_SHORT);
@@ -901,52 +895,66 @@ public class MainActivity extends Activity implements View.OnClickListener,
 
                 //if blur is bigger than 0, get default wallpaper - to bitmap - fastblur bitmap - store
                 else {
-                    WallpaperManager wallpaperManager = WallpaperManager.getInstance(this);
-                    final Drawable wallpaperDrawable = wallpaperManager.getFastDrawable();
+                    //check if TapUnlock folder exists, if not, create directory
+                    File folder = new File(Environment.getExternalStorageDirectory() + "/TapUnlock");
+                    boolean folderSuccess = true;
 
-                    //display indeterminate progress bar while blurring
-                    progressBar.setVisibility(View.VISIBLE);
+                    if (!folder.exists()) {
+                        folderSuccess = folder.mkdir();
+                    }
 
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Bitmap bitmapToBlur = ImageUtils.drawableToBitmap(wallpaperDrawable);
+                    if (folderSuccess) {
+                        WallpaperManager wallpaperManager = WallpaperManager.getInstance(this);
+                        final Drawable wallpaperDrawable = wallpaperManager.getFastDrawable();
 
-                            Bitmap blurredWallpaper = null;
-                            if(bitmapToBlur != null)
-                                blurredWallpaper = ImageUtils.fastBlur(MainActivity.this, bitmapToBlur, blur);
+                        //display indeterminate progress bar while blurring
+                        progressBar.setVisibility(View.VISIBLE);
 
-                            if(blurredWallpaper != null) {
-                                ImageUtils.storeImage(blurredWallpaper);
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Bitmap bitmapToBlur = ImageUtils.drawableToBitmap(wallpaperDrawable);
 
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        progressBar.setVisibility(View.INVISIBLE);
+                                Bitmap blurredWallpaper = null;
+                                if (bitmapToBlur != null)
+                                    blurredWallpaper = ImageUtils.fastBlur(MainActivity.this, bitmapToBlur, blur);
 
-                                        Toast toast = Toast.makeText(getApplicationContext(),
-                                                R.string.toast_wallpaper_refreshed,
-                                                Toast.LENGTH_SHORT);
-                                        toast.show();
-                                    }
-                                });
+                                boolean stored = false;
+                                if (blurredWallpaper != null) {
+                                    stored = ImageUtils.storeImage(blurredWallpaper);
+
+                                    final boolean finalStored = stored;
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            progressBar.setVisibility(View.INVISIBLE);
+
+                                            if (finalStored) {
+                                                Toast toast = Toast.makeText(getApplicationContext(),
+                                                        R.string.toast_wallpaper_refreshed,
+                                                        Toast.LENGTH_SHORT);
+                                                toast.show();
+                                            }
+                                        }
+                                    });
+                                }
+
+                                if (bitmapToBlur == null || blurredWallpaper == null || !stored) {
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            progressBar.setVisibility(View.INVISIBLE);
+
+                                            Toast toast = Toast.makeText(getApplicationContext(),
+                                                    R.string.toast_wallpaper_not_refreshed,
+                                                    Toast.LENGTH_SHORT);
+                                            toast.show();
+                                        }
+                                    });
+                                }
                             }
-
-                            if(bitmapToBlur == null || blurredWallpaper == null) {
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        progressBar.setVisibility(View.INVISIBLE);
-
-                                        Toast toast = Toast.makeText(getApplicationContext(),
-                                                R.string.toast_wallpaper_not_refreshed,
-                                                Toast.LENGTH_SHORT);
-                                        toast.show();
-                                    }
-                                });
-                            }
-                        }
-                    }).start();
+                        }).start();
+                    }
                 }
             }
 
@@ -959,12 +967,11 @@ public class MainActivity extends Activity implements View.OnClickListener,
             }
         }
 
-
         //if '+' pressed
-        else if(v.getId() == R.id.newTag) {
-            if(nfcAdapter != null) {
+        else if (v.getId() == R.id.newTag) {
+            if (nfcAdapter != null) {
                 //if NFC is on, show scan dialog and enableForegroundDispatch
-                if(nfcAdapter.isEnabled()) {
+                if (nfcAdapter.isEnabled()) {
                     MainActivity.this.showDialog(DIALOG_READ);
 
                     nfcAdapter.enableForegroundDispatch(this, pIntent,
@@ -1026,12 +1033,12 @@ public class MainActivity extends Activity implements View.OnClickListener,
 
     //if enable/disable screen lock switch changed
     public void onCheckedChanged(final CompoundButton buttonView, boolean isChecked) {
-        if(isChecked) {
+        if (isChecked) {
             //if NFC is on
-            if(nfcAdapter.isEnabled()) {
+            if (nfcAdapter.isEnabled()) {
                 try {
                     //if no PIN remembered, toast user to enter a PIN
-                    if(settings.getString("pin").equals("")) {
+                    if (settings.getString("pin").equals("")) {
                         Toast toast = Toast.makeText(getApplicationContext(),
                                 R.string.toast_lock_set_pin,
                                 Toast.LENGTH_LONG);
@@ -1041,7 +1048,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
                     }
 
                     //if no NFC Tag remembered, toast user to scan an NFC Tag
-                    else if(tags.length() == 0) {
+                    else if (tags.length() == 0) {
                         Toast toast = Toast.makeText(getApplicationContext(),
                                 R.string.toast_lock_add_tag,
                                 Toast.LENGTH_LONG);
@@ -1049,7 +1056,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
 
                         //set lockscreen false, stop service and store
                         try {
-                            if(settings.getBoolean("lockscreen")) {
+                            if (settings.getBoolean("lockscreen")) {
                                 settings.put("lockscreen", false);
                                 lockscreen = false;
 
@@ -1070,7 +1077,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
 
                     //if everything ok, set lockscreen true, start service and store
                     else {
-                        if(!onStart) {
+                        if (!onStart) {
                             try {
                                 settings.put("lockscreen", true);
                                 lockscreen = true;
@@ -1122,7 +1129,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
 
                 //set lockscreen false, stop service and store
                 try {
-                    if(settings.getBoolean("lockscreen"))
+                    if (settings.getBoolean("lockscreen"))
                         settings.put("lockscreen", false);
 
                 } catch (JSONException e) {
@@ -1197,14 +1204,14 @@ public class MainActivity extends Activity implements View.OnClickListener,
 
         String action = intent.getAction();
 
-        if(NfcAdapter.ACTION_TECH_DISCOVERED.equals(action)) {
+        if (NfcAdapter.ACTION_TECH_DISCOVERED.equals(action)) {
             Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
 
             //get tag ID and turn into String
             byte[] tagIDbytes = tag.getId();
             tagID = bytesToHex(tagIDbytes);
 
-            if(!tagID.equals("")) {
+            if (!tagID.equals("")) {
                 //dismiss the 'Scan NFC Tag' dialog and show the 'Set tag name' dialog
                 dismissDialog(DIALOG_READ);
 
@@ -1223,7 +1230,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
     public static String bytesToHex(byte[] bytes) {
         char[] hexChars = new char[bytes.length * 2];
 
-        for(int i = 0; i < bytes.length; i++) {
+        for (int i = 0; i < bytes.length; i++) {
             int x = bytes[i] & 0xFF;
             hexChars[i * 2] = hexArray[x >>> 4];
             hexChars[i * 2+1] = hexArray[x & 0x0F];
@@ -1238,7 +1245,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
     protected void onPause() {
         super.onPause();
 
-        if(nfcAdapter != null)
+        if (nfcAdapter != null)
             nfcAdapter.disableForegroundDispatch(this);
     }
 }

@@ -4,7 +4,41 @@
     android:animateLayoutChanges="true"
     android:id="@+id/tutorialRelativeLayout"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:background="@color/blue">
+    android:background="@color/blue"
+    android:visibility="visible">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/tutorial_screenshot2"
+        android:id="@+id/screenshotDescription"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:textColor="@color/tutorial_white"
+        android:visibility="invisible"
+        android:layout_marginTop="30dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:gravity="top|center"
+        android:layout_marginRight="10dp"
+        android:layout_marginLeft="10dp"
+        android:textSize="28sp" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/screenshotView"
+        android:layout_above="@+id/moonPiBrand"
+        android:layout_centerHorizontal="true"
+        android:src="@drawable/ic_tutorial2"
+        android:scaleType="fitXY"
+        android:layout_marginRight="45dp"
+        android:layout_marginLeft="45dp"
+        android:layout_marginBottom="22dp"
+        android:visibility="invisible"
+        android:layout_below="@+id/screenshotDescription"
+        android:layout_alignLeft="@+id/navLeft"
+        android:layout_alignRight="@+id/navRight" />
 
     <ImageButton
         android:layout_width="85dp"
@@ -49,7 +83,7 @@
         android:textColor="@color/tutorial_white"
         android:layout_marginBottom="8dp"
         android:textStyle="bold"
-        android:textSize="25sp" />
+        android:textSize="28sp" />
 
     <Button
         android:layout_width="wrap_content"
@@ -58,7 +92,6 @@
         android:id="@+id/skip"
         android:textColor="@color/tutorial_white"
         android:background="@color/transparent_white"
-        android:textAppearance="?android:attr/textAppearanceLarge"
         android:layout_alignBottom="@+id/moonPiBrand"
         android:layout_alignRight="@+id/navRight"
         android:layout_marginRight="55dp"
@@ -77,7 +110,7 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="40dp"
         android:textStyle="bold"
-        android:textSize="50dp" />
+        android:textSize="50sp" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -89,18 +122,17 @@
         android:textColor="@color/tutorial_white"
         android:layout_marginTop="10dp"
         android:textStyle="bold"
-        android:textSize="55dp"
+        android:textSize="65sp"
         android:visibility="visible" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="@string/tutorial_description"
         android:id="@+id/appDescription"
         android:layout_below="@+id/tapunlock"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="40dp"
         android:textColor="@color/tutorial_white"
         android:layout_toLeftOf="@+id/navRight"
         android:layout_toRightOf="@+id/navLeft"
@@ -109,12 +141,11 @@
         android:layout_marginRight="3dp"
         android:textStyle="italic"
         android:visibility="visible"
-        android:textSize="28sp" />
+        android:textSize="30sp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="@string/tutorial_navigation"
         android:id="@+id/navigation"
         android:textColor="@color/tutorial_white"
@@ -129,39 +160,5 @@
         android:visibility="visible"
         android:textStyle="bold|italic"
         android:textSize="32sp" />
-
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/screenshotView"
-        android:layout_above="@+id/moonPiBrand"
-        android:layout_centerHorizontal="true"
-        android:src="@drawable/ic_tutorial2"
-        android:scaleType="fitXY"
-        android:layout_marginRight="42dp"
-        android:layout_marginLeft="42dp"
-        android:layout_marginBottom="22dp"
-        android:visibility="invisible"
-        android:layout_below="@+id/screenshotDescription"
-        android:layout_alignLeft="@+id/navLeft"
-        android:layout_alignRight="@+id/navRight" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="@string/tutorial_screenshot2"
-        android:id="@+id/screenshotDescription"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:textColor="@color/tutorial_white"
-        android:visibility="invisible"
-        android:layout_marginTop="30dp"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        android:gravity="top|center"
-        android:layout_marginRight="10dp"
-        android:layout_marginLeft="10dp"
-        android:textSize="28sp" />
 
 </RelativeLayout>

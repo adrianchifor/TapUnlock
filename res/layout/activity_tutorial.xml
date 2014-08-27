@@ -6,6 +6,39 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:background="@color/blue">
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/tutorial_screenshot2"
+        android:id="@+id/screenshotDescription"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:textColor="@color/tutorial_white"
+        android:visibility="invisible"
+        android:layout_marginTop="20dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:gravity="top|center"
+        android:layout_marginRight="8dp"
+        android:layout_marginLeft="8dp" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/screenshotView"
+        android:layout_above="@+id/moonPiBrand"
+        android:layout_centerHorizontal="true"
+        android:src="@drawable/ic_tutorial2"
+        android:scaleType="fitXY"
+        android:layout_marginRight="35dp"
+        android:layout_marginLeft="35dp"
+        android:layout_marginBottom="15dp"
+        android:visibility="invisible"
+        android:layout_below="@+id/screenshotDescription"
+        android:layout_alignLeft="@+id/navLeft"
+        android:layout_alignRight="@+id/navRight" />
+
     <ImageButton
         android:layout_width="50dp"
         android:layout_height="50dp"
@@ -87,7 +120,7 @@
         android:textColor="@color/tutorial_white"
         android:layout_marginTop="8dp"
         android:textStyle="bold"
-        android:textSize="35sp"
+        android:textSize="40sp"
         android:visibility="visible" />
 
     <TextView
@@ -125,38 +158,5 @@
         android:layout_marginBottom="8dp"
         android:visibility="visible"
         android:textStyle="bold|italic" />
-
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/screenshotView"
-        android:layout_above="@+id/moonPiBrand"
-        android:layout_centerHorizontal="true"
-        android:src="@drawable/ic_tutorial2"
-        android:scaleType="fitXY"
-        android:layout_marginRight="35dp"
-        android:layout_marginLeft="35dp"
-        android:layout_marginBottom="15dp"
-        android:visibility="invisible"
-        android:layout_below="@+id/screenshotDescription"
-        android:layout_alignLeft="@+id/navLeft"
-        android:layout_alignRight="@+id/navRight" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="@string/tutorial_screenshot2"
-        android:id="@+id/screenshotDescription"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:textColor="@color/tutorial_white"
-        android:visibility="invisible"
-        android:layout_marginTop="20dp"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        android:gravity="top|center"
-        android:layout_marginRight="8dp"
-        android:layout_marginLeft="8dp" />
 
 </RelativeLayout>

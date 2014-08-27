@@ -19,7 +19,8 @@
         android:layout_marginLeft="8dp"
         android:layout_marginTop="5dp"
         android:maxLines="1"
-        android:layout_marginRight="8dp" />
+        android:layout_marginRight="8dp"
+        android:layout_alignParentRight="true" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -31,8 +32,8 @@
         android:layout_alignLeft="@+id/backgroundBlurValue"
         android:layout_marginTop="3dp"
         android:textColor="@color/blue"
-        android:layout_marginRight="8dp"
-        android:paddingBottom="7dp" />
+        android:paddingBottom="7dp"
+        android:layout_alignRight="@+id/backgroundBlurValue" />
 
     <View
         android:layout_width="wrap_content"

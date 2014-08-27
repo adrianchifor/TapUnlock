@@ -4,7 +4,42 @@
     android:animateLayoutChanges="true"
     android:id="@+id/tutorialRelativeLayout"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:background="@color/blue">
+    android:background="@color/blue"
+    android:visibility="visible">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="@string/tutorial_screenshot2"
+        android:id="@+id/screenshotDescription"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:textColor="@color/tutorial_white"
+        android:visibility="invisible"
+        android:layout_marginTop="30dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:gravity="top|center"
+        android:layout_marginRight="10dp"
+        android:layout_marginLeft="10dp"
+        android:textSize="25sp" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/screenshotView"
+        android:layout_above="@+id/moonPiBrand"
+        android:layout_centerHorizontal="true"
+        android:src="@drawable/ic_tutorial2"
+        android:scaleType="fitXY"
+        android:layout_marginRight="40dp"
+        android:layout_marginLeft="40dp"
+        android:layout_marginBottom="18dp"
+        android:visibility="invisible"
+        android:layout_below="@+id/screenshotDescription"
+        android:layout_alignLeft="@+id/navLeft"
+        android:layout_alignRight="@+id/navRight" />
 
     <ImageButton
         android:layout_width="70dp"
@@ -57,7 +92,6 @@
         android:id="@+id/skip"
         android:textColor="@color/tutorial_white"
         android:background="@color/transparent_white"
-        android:textAppearance="?android:attr/textAppearanceLarge"
         android:layout_alignBottom="@+id/moonPiBrand"
         android:layout_alignRight="@+id/navRight"
         android:layout_marginRight="40dp"
@@ -76,7 +110,7 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="35dp"
         android:textStyle="bold"
-        android:textSize="40dp" />
+        android:textSize="40sp" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -88,18 +122,17 @@
         android:textColor="@color/tutorial_white"
         android:layout_marginTop="8dp"
         android:textStyle="bold"
-        android:textSize="45dp"
+        android:textSize="50sp"
         android:visibility="visible" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="@string/tutorial_description"
         android:id="@+id/appDescription"
         android:layout_below="@+id/tapunlock"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="22dp"
+        android:layout_marginTop="35dp"
         android:textColor="@color/tutorial_white"
         android:layout_toLeftOf="@+id/navRight"
         android:layout_toRightOf="@+id/navLeft"
@@ -127,39 +160,5 @@
         android:layout_marginBottom="25dp"
         android:visibility="visible"
         android:textStyle="bold|italic" />
-
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/screenshotView"
-        android:layout_above="@+id/moonPiBrand"
-        android:layout_centerHorizontal="true"
-        android:src="@drawable/ic_tutorial2"
-        android:scaleType="fitXY"
-        android:layout_marginRight="40dp"
-        android:layout_marginLeft="40dp"
-        android:layout_marginBottom="18dp"
-        android:visibility="invisible"
-        android:layout_below="@+id/screenshotDescription"
-        android:layout_alignLeft="@+id/navLeft"
-        android:layout_alignRight="@+id/navRight" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="@string/tutorial_screenshot2"
-        android:id="@+id/screenshotDescription"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:textColor="@color/tutorial_white"
-        android:visibility="invisible"
-        android:layout_marginTop="30dp"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        android:gravity="top|center"
-        android:layout_marginRight="10dp"
-        android:layout_marginLeft="10dp"
-        android:textSize="25sp" />
 
 </RelativeLayout>

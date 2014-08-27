@@ -32,9 +32,7 @@
             android:id="@+id/shadow1"
             android:layout_below="@+id/frame1"
             android:layout_alignLeft="@+id/frame1"
-            android:layout_alignRight="@+id/frame1"
-            android:layout_marginLeft="2dp"
-            android:layout_marginRight="2dp" />
+            android:layout_alignRight="@+id/frame1" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -100,9 +98,7 @@
             android:id="@+id/shadow2"
             android:layout_below="@+id/frame2"
             android:layout_alignLeft="@+id/frame2"
-            android:layout_alignRight="@+id/frame2"
-            android:layout_marginLeft="2dp"
-            android:layout_marginRight="2dp" />
+            android:layout_alignRight="@+id/frame2" />
 
         <View
             android:layout_width="match_parent"
@@ -175,9 +171,7 @@
             android:id="@+id/shadow3"
             android:layout_below="@+id/frame3"
             android:layout_alignLeft="@+id/frame3"
-            android:layout_alignRight="@+id/frame3"
-            android:layout_marginLeft="2dp"
-            android:layout_marginRight="2dp" />
+            android:layout_alignRight="@+id/frame3" />
 
         <View
             android:layout_width="match_parent"
@@ -212,6 +206,16 @@
             android:layout_marginTop="12dp"
             android:layout_marginLeft="18dp" />
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="15"
+            android:id="@+id/backgroundBlurValue"
+            android:layout_alignTop="@+id/backgroundBlurMessage"
+            android:layout_toRightOf="@+id/backgroundBlurMessage"
+            android:layout_marginLeft="5dp" />
+
         <SeekBar
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -237,6 +241,17 @@
             android:layout_alignTop="@+id/backgroundBlurMessage"
             android:layout_alignRight="@+id/frame3"
             android:layout_marginRight="15dp" />
+
+        <ProgressBar
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/progressBar"
+            android:layout_below="@+id/seekBar"
+            android:layout_alignLeft="@+id/frame3"
+            android:layout_alignRight="@+id/frame3"
+            android:indeterminate="true"
+            android:visibility="invisible" />
 
         <View
             android:layout_width="match_parent"
@@ -311,27 +326,6 @@
             android:layout_centerHorizontal="true"
             android:layout_marginTop="15dp"
             android:textColor="#696969"
-            android:visibility="invisible" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="15"
-            android:id="@+id/backgroundBlurValue"
-            android:layout_alignTop="@+id/backgroundBlurMessage"
-            android:layout_toRightOf="@+id/backgroundBlurMessage"
-            android:layout_marginLeft="5dp" />
-
-        <ProgressBar
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/progressBar"
-            android:layout_below="@+id/seekBar"
-            android:layout_alignLeft="@+id/frame3"
-            android:layout_alignRight="@+id/frame3"
-            android:indeterminate="true"
             android:visibility="invisible" />
 
     </RelativeLayout>

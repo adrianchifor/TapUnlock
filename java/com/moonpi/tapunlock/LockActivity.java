@@ -79,8 +79,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
 
     private int flags; //window flags
 
-    //surface view and holder for camera (flashlight)
-    private SurfaceView surfaceView;
+    //surfaceHolder for flashlight
     private SurfaceHolder surfaceHolder;
 
     private WindowManager wm;
@@ -115,15 +114,15 @@ public class LockActivity extends Activity implements View.OnClickListener, View
 
     //for updating time and date values
     private Calendar calendar;
-    private String dateFinal, weekDay, dateDay, month;
-    private String timeFinal, hourDay, minuteDay;
 
     //layout items
     private View disableStatusBar;
-    private TextView time, date, battery, unlockText;
-    private ImageButton ic_0, ic_1, ic_2, ic_3, ic_4, ic_5, ic_6, ic_7, ic_8,
-            ic_9, wifi, data, flashlight, brightness, sound;
-    private Button delete;
+    private TextView time, date, battery, unlockText, pinInput;
+    private ImageButton wifi;
+    private ImageButton data;
+    private ImageButton flashlight;
+    private ImageButton brightness;
+    private ImageButton sound;
 
     private Boolean isPhoneCalling = false; //true if phone state listener is ringing/offhook
 
@@ -142,11 +141,11 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     protected Runnable pinLockedRunnable = new Runnable() {
         @Override
         public void run() {
-            if(vibratorAvailable)
+            if (vibratorAvailable)
                 vibrator.vibrate(150);
 
-            if(nfcAdapter != null) {
-                if(nfcAdapter.isEnabled())
+            if (nfcAdapter != null) {
+                if (nfcAdapter.isEnabled())
                     unlockText.setText(getResources().getString(R.string.scan_to_unlock));
 
                 else
@@ -178,15 +177,15 @@ public class LockActivity extends Activity implements View.OnClickListener, View
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
 
-            if(action.equals(Intent.ACTION_TIME_TICK))
+            if (action.equals(Intent.ACTION_TIME_TICK))
                 updateTime();
 
-            else if(action.equals(Intent.ACTION_BATTERY_CHANGED)) {
+            else if (action.equals(Intent.ACTION_BATTERY_CHANGED)) {
                 int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
                 updateBattery(level);
             }
 
-            else if(action.equals(Intent.ACTION_DATE_CHANGED))
+            else if (action.equals(Intent.ACTION_DATE_CHANGED))
                 updateDate();
         }
     };
@@ -206,7 +205,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
 
         try {
             //if lockscreen false, stop service, pinLocked false, store and finish
-            if(!settings.getBoolean("lockscreen")) {
+            if (!settings.getBoolean("lockscreen")) {
                 stopService(new Intent(this, ScreenLockService.class));
 
                 pinLocked = false;
@@ -259,7 +258,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
         nfcAdapter = nfcManager.getDefaultAdapter();
 
         //if Android version less than 4.4, createPendingResult for NFC tag discovery
-        if(Build.VERSION.SDK_INT < 19) {
+        if (Build.VERSION.SDK_INT < 19) {
             pIntent = PendingIntent.getActivity(
                     this, 0, new Intent(this, getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
         }
@@ -272,10 +271,9 @@ public class LockActivity extends Activity implements View.OnClickListener, View
         wm.addView(disableStatusBar, handleParamsTop);
 
         //if Android version 4.4 or bigger, add translucent status bar flag
-        if(Build.VERSION.SDK_INT >= 19) {
+        if (Build.VERSION.SDK_INT >= 19) {
             this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         }
-
 
         //to listen for calls, so user can accept or deny a call
         StateListener phoneStateListener = new StateListener();
@@ -288,15 +286,14 @@ public class LockActivity extends Activity implements View.OnClickListener, View
         wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
         connManager = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
 
+        //check if system has flashlight feature and store true/false in var
+        flashlightAvailable = getApplicationContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
+
         //check if device has vibrator and store true/false in var
         vibratorAvailable = vibrator.hasVibrator();
 
         //get mobile data connection, to check whether connected or not
         isMobileDataOn = connManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
-
-        //check if system has flashlight feature and store true/false in var
-        flashlightAvailable = getApplicationContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
-
 
         setContentView(R.layout.activity_lock);
 
@@ -310,7 +307,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
 
         //if Android 4.1 or lower or blur is 0 or blurred wallpaper doesn't exist
         //get default wallpaper and set as background drawable
-        if(Build.VERSION.SDK_INT < 17 || blur == 0 || !ImageUtils.doesBlurredWallpaperExist()) {
+        if (Build.VERSION.SDK_INT < 17 || blur == 0 || !ImageUtils.doesBlurredWallpaperExist()) {
             WallpaperManager wallpaperManager = WallpaperManager.getInstance(this);
             Drawable wallpaperDrawable = wallpaperManager.getFastDrawable();
             getWindow().setBackgroundDrawable(wallpaperDrawable);
@@ -320,7 +317,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
         else {
             Drawable blurredWallpaper = ImageUtils.retrieveWallpaperDrawable();
 
-            if(blurredWallpaper != null)
+            if (blurredWallpaper != null)
                 getWindow().setBackgroundDrawable(blurredWallpaper);
 
             else {
@@ -331,13 +328,13 @@ public class LockActivity extends Activity implements View.OnClickListener, View
         }
 
         //initialize surface view and holder for camera (flashlight) preview
-        surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
+        SurfaceView surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
         surfaceHolder = surfaceView.getHolder();
 
         RelativeLayout lockRelativeLayout = (RelativeLayout) findViewById(R.id.lockRelativeLayout);
 
         //if Android version 4.4 or bigger, set layout fits system windows to true
-        if(Build.VERSION.SDK_INT >= 19) {
+        if (Build.VERSION.SDK_INT >= 19) {
             lockRelativeLayout.setFitsSystemWindows(true);
         }
 
@@ -354,22 +351,23 @@ public class LockActivity extends Activity implements View.OnClickListener, View
         date = (TextView)findViewById(R.id.date);
         battery = (TextView)findViewById(R.id.battery);
         unlockText = (TextView)findViewById(R.id.unlockText);
-        ic_0 = (ImageButton)findViewById(R.id.ic_0);
-        ic_1 = (ImageButton)findViewById(R.id.ic_1);
-        ic_2 = (ImageButton)findViewById(R.id.ic_2);
-        ic_3 = (ImageButton)findViewById(R.id.ic_3);
-        ic_4 = (ImageButton)findViewById(R.id.ic_4);
-        ic_5 = (ImageButton)findViewById(R.id.ic_5);
-        ic_6 = (ImageButton)findViewById(R.id.ic_6);
-        ic_7 = (ImageButton)findViewById(R.id.ic_7);
-        ic_8 = (ImageButton)findViewById(R.id.ic_8);
-        ic_9 = (ImageButton)findViewById(R.id.ic_9);
+        pinInput = (TextView)findViewById(R.id.pinInput);
+        ImageButton ic_0 = (ImageButton) findViewById(R.id.ic_0);
+        ImageButton ic_1 = (ImageButton) findViewById(R.id.ic_1);
+        ImageButton ic_2 = (ImageButton) findViewById(R.id.ic_2);
+        ImageButton ic_3 = (ImageButton) findViewById(R.id.ic_3);
+        ImageButton ic_4 = (ImageButton) findViewById(R.id.ic_4);
+        ImageButton ic_5 = (ImageButton) findViewById(R.id.ic_5);
+        ImageButton ic_6 = (ImageButton) findViewById(R.id.ic_6);
+        ImageButton ic_7 = (ImageButton) findViewById(R.id.ic_7);
+        ImageButton ic_8 = (ImageButton) findViewById(R.id.ic_8);
+        ImageButton ic_9 = (ImageButton) findViewById(R.id.ic_9);
         wifi = (ImageButton)findViewById(R.id.wifi);
         data = (ImageButton)findViewById(R.id.data);
         flashlight = (ImageButton)findViewById(R.id.flashlight);
         brightness = (ImageButton)findViewById(R.id.brightness);
         sound = (ImageButton)findViewById(R.id.sound);
-        delete = (Button)findViewById(R.id.delete);
+        Button delete = (Button) findViewById(R.id.delete);
 
         //set onClick listeners
         ic_0.setOnClickListener(this);
@@ -398,25 +396,25 @@ public class LockActivity extends Activity implements View.OnClickListener, View
 
         //check system screen brightness/mode and set brightnessMode accordingly
         try {
-            if(Settings.System.getInt(cResolver, Settings.System.SCREEN_BRIGHTNESS_MODE) == Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC) {
+            if (Settings.System.getInt(cResolver, Settings.System.SCREEN_BRIGHTNESS_MODE) == Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC) {
                 brightnessMode = 3;
                 brightness.setImageDrawable(getResources().getDrawable(R.drawable.ic_bright_auto));
             }
 
             else {
-                if(Settings.System.getInt(cResolver, Settings.System.SCREEN_BRIGHTNESS) >= LOW_BRIGHTNESS &&
+                if (Settings.System.getInt(cResolver, Settings.System.SCREEN_BRIGHTNESS) >= LOW_BRIGHTNESS &&
                         Settings.System.getInt(cResolver, Settings.System.SCREEN_BRIGHTNESS) < MEDIUM_BRIGHTNESS) {
                     brightnessMode = 0;
                     brightness.setImageDrawable(getResources().getDrawable(R.drawable.ic_bright_0));
                 }
 
-                else if(Settings.System.getInt(cResolver, Settings.System.SCREEN_BRIGHTNESS) >= MEDIUM_BRIGHTNESS &&
+                else if (Settings.System.getInt(cResolver, Settings.System.SCREEN_BRIGHTNESS) >= MEDIUM_BRIGHTNESS &&
                         Settings.System.getInt(cResolver, Settings.System.SCREEN_BRIGHTNESS) < HIGH_BRIGHTNESS) {
                     brightnessMode = 1;
                     brightness.setImageDrawable(getResources().getDrawable(R.drawable.ic_bright_1));
                 }
 
-                if(Settings.System.getInt(cResolver, Settings.System.SCREEN_BRIGHTNESS) == HIGH_BRIGHTNESS) {
+                if (Settings.System.getInt(cResolver, Settings.System.SCREEN_BRIGHTNESS) == HIGH_BRIGHTNESS) {
                     brightnessMode = 2;
                     brightness.setImageDrawable(getResources().getDrawable(R.drawable.ic_bright_2));
                 }
@@ -435,15 +433,15 @@ public class LockActivity extends Activity implements View.OnClickListener, View
         this.registerReceiver(mChangeReceiver, intentFilter);
 
         //if wifi enabled or not, set drawable accordingly
-        if(wifiManager.isWifiEnabled())
+        if (wifiManager.isWifiEnabled())
             wifi.setImageDrawable(getResources().getDrawable(R.drawable.ic_wifi_on));
 
         else
             wifi.setImageDrawable(getResources().getDrawable(R.drawable.ic_wifi_off));
 
         //if mobile data not null and enabled or not, set drawable accordingly
-        if(isMobileDataOn != null) {
-            if(isMobileDataOn.isConnected())
+        if (isMobileDataOn != null) {
+            if (isMobileDataOn.isConnected())
                 data.setImageDrawable(getResources().getDrawable(R.drawable.ic_data_on));
 
             else
@@ -451,7 +449,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
         }
 
         //check ringer mode and set drawable/ringerMode var accordingly
-        switch(am.getRingerMode()) {
+        switch (am.getRingerMode()) {
             case AudioManager.RINGER_MODE_NORMAL:
                 sound.setImageDrawable(getResources().getDrawable(R.drawable.ic_speaker));
                 ringerMode = 1;
@@ -470,7 +468,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
 
         //check default launcher, if current package isn't the default one
         //open the 'Select home app' dialog for user to pick default home launcher
-        if(!isMyLauncherDefault()) {
+        if (!isMyLauncherDefault()) {
             packageManager.clearPackagePreferredActivities(getPackageName());
 
             final Intent launcherPicker = new Intent();
@@ -542,14 +540,14 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     //method to update time view
     public void updateTime() {
         calendar = Calendar.getInstance();
-        hourDay = String.valueOf(calendar.get(Calendar.HOUR_OF_DAY));
+        String hourDay = String.valueOf(calendar.get(Calendar.HOUR_OF_DAY));
 
-        minuteDay = ":" + String.valueOf(calendar.get(Calendar.MINUTE));
+        String minuteDay = ":" + String.valueOf(calendar.get(Calendar.MINUTE));
 
-        if(minuteDay.length() < 3)
+        if (minuteDay.length() < 3)
             minuteDay = ":" + "0" + String.valueOf(calendar.get(Calendar.MINUTE));
 
-        timeFinal = hourDay + minuteDay;
+        String timeFinal = hourDay + minuteDay;
 
         time.setText(timeFinal);
     }
@@ -557,10 +555,10 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     //method to update date view
     public void updateDate() {
         calendar = Calendar.getInstance();
-        weekDay = String.valueOf(calendar.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.US));
-        month = " " + String.valueOf(calendar.getDisplayName(Calendar.MONTH, Calendar.SHORT, Locale.US));
-        dateDay = " " + String.valueOf(calendar.get(Calendar.DATE));
-        dateFinal = weekDay + dateDay + month;
+        String weekDay = String.valueOf(calendar.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.US));
+        String month = " " + String.valueOf(calendar.getDisplayName(Calendar.MONTH, Calendar.SHORT, Locale.US));
+        String dateDay = " " + String.valueOf(calendar.get(Calendar.DATE));
+        String dateFinal = weekDay + dateDay + month;
 
         date.setText(dateFinal);
     }
@@ -570,7 +568,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
         battery.setText(String.valueOf(batteryLevel) + "% Battery");
 
         //set text color depending on battery level
-        if(batteryLevel > 15)
+        if (batteryLevel > 15)
             battery.setTextColor(getResources().getColor(R.color.light_green));
 
         else
@@ -580,7 +578,14 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     //returns the current battery level
     public int getBatteryLevel() {
         Intent batteryIntent = getApplicationContext().registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
-        int level = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+        int level = -1;
+
+        try {
+            level = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+
+        } catch (NullPointerException npe) {
+            npe.printStackTrace();
+        }
 
         return level;
     }
@@ -588,7 +593,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
 
     //method to turn wifi on or off
     private void wifiOn(boolean enabled) {
-        if(enabled) {
+        if (enabled) {
             wifiManager.setWifiEnabled(true);
             wifi.setImageDrawable(getResources().getDrawable(R.drawable.ic_wifi_on));
         }
@@ -607,7 +612,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
         mobileDataMethod.setAccessible(true);
         mobileDataMethod.invoke(connManager, enabled);
 
-        if(enabled)
+        if (enabled)
             data.setImageDrawable(getResources().getDrawable(R.drawable.ic_data_on));
 
         else
@@ -621,35 +626,41 @@ public class LockActivity extends Activity implements View.OnClickListener, View
             try {
                 cam = Camera.open();
 
-                if(cam != null)
+                if (cam != null)
                     camParam = cam.getParameters();
 
-            } catch (RuntimeException e) {
+            } catch (RuntimeException re) {
+                re.printStackTrace();
+
                 Toast toast = Toast.makeText(getApplicationContext(),
                         R.string.toast_camera_failed,
                         Toast.LENGTH_SHORT);
                 toast.show();
-
-                e.printStackTrace();
             }
         }
     }
 
     //method to stop camera preview and release
     private void releaseCamera() {
-        if(cam != null) {
-            cam.stopPreview();
-            cam.release();
+        if (cam != null) {
+            try {
+                cam.stopPreview();
+                cam.release();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
             cam = null;
         }
     }
 
     //method to turn flashlight on or off
     private void flashlightOn(boolean enabled) {
-        if(enabled) {
+        if (enabled) {
             getCamera();
 
-            if(cam == null || camParam == null) {
+            if (cam == null || camParam == null) {
                 Toast toast = Toast.makeText(getApplicationContext(),
                         R.string.toast_camera_failed,
                         Toast.LENGTH_SHORT);
@@ -659,26 +670,58 @@ public class LockActivity extends Activity implements View.OnClickListener, View
             }
 
             try {
-                if(surfaceHolder != null)
+                if (surfaceHolder != null)
                     cam.setPreviewDisplay(surfaceHolder);
 
             } catch (IOException e) {
                 e.printStackTrace();
+
+                Toast toast = Toast.makeText(getApplicationContext(),
+                        R.string.toast_camera_failed,
+                        Toast.LENGTH_SHORT);
+                toast.show();
+
+                return;
             }
 
             camParam = cam.getParameters();
             camParam.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
-            cam.setParameters(camParam);
 
-            cam.startPreview();
+            try {
+                cam.setParameters(camParam);
+
+            } catch (RuntimeException re) {
+                re.printStackTrace();
+
+                Toast toast = Toast.makeText(getApplicationContext(),
+                        R.string.toast_camera_failed,
+                        Toast.LENGTH_SHORT);
+                toast.show();
+
+                return;
+            }
+
+            try {
+                cam.startPreview();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+
+                Toast toast = Toast.makeText(getApplicationContext(),
+                        R.string.toast_camera_failed,
+                        Toast.LENGTH_SHORT);
+                toast.show();
+
+                return;
+            }
+
             isFlashOn = true;
-
             flashlight.setImageDrawable(getResources().getDrawable(R.drawable.ic_flashlight_on));
         }
 
         //turn flashlight off
         else {
-            if(cam == null || camParam == null) {
+            if (cam == null || camParam == null) {
                 Toast toast = Toast.makeText(getApplicationContext(),
                         R.string.toast_camera_failed,
                         Toast.LENGTH_SHORT);
@@ -689,7 +732,13 @@ public class LockActivity extends Activity implements View.OnClickListener, View
 
             camParam = cam.getParameters();
             camParam.setFlashMode(Parameters.FLASH_MODE_OFF);
-            cam.setParameters(camParam);
+
+            try {
+                cam.setParameters(camParam);
+
+            } catch (RuntimeException re) {
+                re.printStackTrace();
+            }
 
             flashlight.setImageDrawable(getResources().getDrawable(R.drawable.ic_flashlight_off));
 
@@ -702,11 +751,11 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     //0 for '0', 1 for '80', 2 for '255' and 3 for auto
     //method to change system brightness
     private void brightnessChange(int mode) {
-        if(mode == 0) {
-            if(brightness != null)
+        if (mode == 0) {
+            if (brightness != null)
                 brightness.setImageDrawable(getResources().getDrawable(R.drawable.ic_bright_0));
 
-            if(cResolver != null) {
+            if (cResolver != null) {
                 Settings.System.putInt(cResolver, Settings.System.SCREEN_BRIGHTNESS_MODE,
                         Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL);
 
@@ -715,31 +764,34 @@ public class LockActivity extends Activity implements View.OnClickListener, View
             }
         }
 
-        else if(mode == 1) {
-            if(brightness != null)
+        else if (mode == 1) {
+            if (brightness != null)
                 brightness.setImageDrawable(getResources().getDrawable(R.drawable.ic_bright_1));
 
-            if(cResolver != null)
+            if (cResolver != null) {
                 Settings.System.putInt(cResolver, Settings.System.SCREEN_BRIGHTNESS,
                         MEDIUM_BRIGHTNESS);
+            }
         }
 
-        else if(mode == 2) {
-            if(brightness != null)
+        else if (mode == 2) {
+            if (brightness != null)
                 brightness.setImageDrawable(getResources().getDrawable(R.drawable.ic_bright_2));
 
-            if(cResolver != null)
+            if (cResolver != null) {
                 Settings.System.putInt(cResolver, Settings.System.SCREEN_BRIGHTNESS,
                         HIGH_BRIGHTNESS);
+            }
         }
 
-        else if(mode == 3) {
-            if(brightness != null)
+        else if (mode == 3) {
+            if (brightness != null)
                 brightness.setImageDrawable(getResources().getDrawable(R.drawable.ic_bright_auto));
 
-            if(cResolver != null)
+            if (cResolver != null) {
                 Settings.System.putInt(cResolver, Settings.System.SCREEN_BRIGHTNESS_MODE,
                         Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC);
+            }
         }
     }
 
@@ -747,21 +799,18 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     //1 for 'normal', 2 for 'vibrate' and 3 for 'silent'
     //method to change ringer mode
     private void ringerChange(int mode) {
-        if(mode == 1) {
+        if (mode == 1) {
             sound.setImageDrawable(getResources().getDrawable(R.drawable.ic_speaker));
-
             am.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
         }
 
-        else if(mode == 2) {
+        else if (mode == 2) {
             sound.setImageDrawable(getResources().getDrawable(R.drawable.ic_vibration));
-
             am.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
         }
 
-        else if(mode == 3) {
+        else if (mode == 3) {
             sound.setImageDrawable(getResources().getDrawable(R.drawable.ic_silent));
-
             am.setRingerMode(AudioManager.RINGER_MODE_SILENT);
         }
     }
@@ -780,8 +829,8 @@ public class LockActivity extends Activity implements View.OnClickListener, View
 
         packageManager.getPreferredActivities(filters, activities, "com.moonpi.tapunlock");
 
-        for(ComponentName activity : activities) {
-            if(myPackageName.equals(activity.getPackageName())) {
+        for (ComponentName activity : activities) {
+            if (myPackageName.equals(activity.getPackageName())) {
                 return true;
             }
         }
@@ -792,12 +841,15 @@ public class LockActivity extends Activity implements View.OnClickListener, View
 
     //method called each time the user presses a keypad button
     public void checkPIN() {
-        if(!pinLocked) {
-            if(pinEntered.length() == pin.length()) {
+        if (!pinLocked) {
+            pinInput.setText(pinEntered);
+
+            if (pinEntered.length() == pin.length()) {
                 //if correct PIN entered, reset pinEntered, remove handle callbacks and messages,
                 //set home launcher activity component disabled and finish
-                if(pinEntered.equals(pin)) {
+                if (pinEntered.equals(pin)) {
                     pinEntered = "";
+                    pinInput.setText(pinEntered);
 
                     mHandler.removeCallbacksAndMessages(null);
 
@@ -805,23 +857,23 @@ public class LockActivity extends Activity implements View.OnClickListener, View
 
                     finish();
                     overridePendingTransition(0, 0);
-                    return;
                 }
 
                 //if incorrect PIN entered, reset drawable and pinEntered, lower pinAttempts
                 //vibrate and display 'Wrong PIN. Try again' for 1s
                 else {
-                    if(pinAttempts > 0) {
+                    if (pinAttempts > 0) {
                         pinAttempts -= 1;
 
                         pinEntered = "";
+                        pinInput.setText(pinEntered);
 
                         unlockText.postDelayed(new Runnable() {
                             @Override
                             public void run() {
-                                if(pinAttempts > 0) {
-                                    if(nfcAdapter != null) {
-                                        if(nfcAdapter.isEnabled())
+                                if (pinAttempts > 0) {
+                                    if (nfcAdapter != null) {
+                                        if (nfcAdapter.isEnabled())
                                             unlockText.setText(getResources().getString(R.string.scan_to_unlock));
 
                                         else
@@ -834,7 +886,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
                             }
                         }, 1000);
 
-                        if(vibratorAvailable)
+                        if (vibratorAvailable)
                             vibrator.vibrate(250);
 
                         unlockText.setText(getResources().getString(R.string.wrong_pin));
@@ -843,11 +895,11 @@ public class LockActivity extends Activity implements View.OnClickListener, View
                     //0 attempts left, vibrate, reset pinEntered and pinAttempts,
                     //set pinLocked to true, store and post reset PIN keypad runnable in 30s
                     else {
-                        if(vibratorAvailable)
+                        if (vibratorAvailable)
                             vibrator.vibrate(500);
 
-                        if(nfcAdapter != null) {
-                            if(nfcAdapter.isEnabled())
+                        if (nfcAdapter != null) {
+                            if (nfcAdapter.isEnabled())
                                 unlockText.setText(getResources().getString(R.string.pin_locked));
 
                             else
@@ -859,6 +911,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
 
 
                         pinEntered = "";
+                        pinInput.setText(pinEntered);
 
                         pinLocked = true;
 
@@ -884,83 +937,84 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     @Override
     public void onClick(View v) {
         //if PIN keypad button pressed, add pressed number to pinEntered and call checkPin method
-        if(v.getId() == R.id.ic_0) {
-            if(pinEntered.length() < pin.length())
+        if (v.getId() == R.id.ic_0) {
+            if (pinEntered.length() < pin.length())
                 pinEntered += "0";
 
             checkPIN();
         }
 
-        else if(v.getId() == R.id.ic_1) {
-            if(pinEntered.length() < pin.length())
+        else if (v.getId() == R.id.ic_1) {
+            if (pinEntered.length() < pin.length())
                 pinEntered += "1";
 
             checkPIN();
         }
 
-        else if(v.getId() == R.id.ic_2) {
-            if(pinEntered.length() < pin.length())
+        else if (v.getId() == R.id.ic_2) {
+            if (pinEntered.length() < pin.length())
                 pinEntered += "2";
 
             checkPIN();
         }
 
-        else if(v.getId() == R.id.ic_3) {
-            if(pinEntered.length() < pin.length())
+        else if (v.getId() == R.id.ic_3) {
+            if (pinEntered.length() < pin.length())
                 pinEntered += "3";
 
             checkPIN();
         }
 
-        else if(v.getId() == R.id.ic_4) {
-            if(pinEntered.length() < pin.length())
+        else if (v.getId() == R.id.ic_4) {
+            if (pinEntered.length() < pin.length())
                 pinEntered += "4";
 
             checkPIN();
         }
 
-        else if(v.getId() == R.id.ic_5) {
-            if(pinEntered.length() < pin.length())
+        else if (v.getId() == R.id.ic_5) {
+            if (pinEntered.length() < pin.length())
                 pinEntered += "5";
 
             checkPIN();
         }
 
-        else if(v.getId() == R.id.ic_6) {
-            if(pinEntered.length() < pin.length())
+        else if (v.getId() == R.id.ic_6) {
+            if (pinEntered.length() < pin.length())
                 pinEntered += "6";
 
             checkPIN();
         }
 
-        else if(v.getId() == R.id.ic_7) {
-            if(pinEntered.length() < pin.length())
+        else if (v.getId() == R.id.ic_7) {
+            if (pinEntered.length() < pin.length())
                 pinEntered += "7";
 
             checkPIN();
         }
 
-        else if(v.getId() == R.id.ic_8) {
-            if(pinEntered.length() < pin.length())
+        else if (v.getId() == R.id.ic_8) {
+            if (pinEntered.length() < pin.length())
                 pinEntered += "8";
 
             checkPIN();
         }
 
-        else if(v.getId() == R.id.ic_9) {
-            if(pinEntered.length() < pin.length())
+        else if (v.getId() == R.id.ic_9) {
+            if (pinEntered.length() < pin.length())
                 pinEntered += "9";
 
             checkPIN();
         }
 
         //if delete pressed, delete last element of pinEntered; if pinEntered is empty, do nothing
-        else if(v.getId() == R.id.delete) {
-            if(pinEntered.length() > 0) {
-                if(pinEntered.length() == 1) {
+        else if (v.getId() == R.id.delete) {
+            if (pinEntered.length() > 0) {
+                if (pinEntered.length() == 1) {
                     pinEntered = "";
+                    pinInput.setText(pinEntered);
 
-                    if(vibratorAvailable)
+                    if (vibratorAvailable)
                         vibrator.vibrate(50);
 
                     return;
@@ -968,31 +1022,32 @@ public class LockActivity extends Activity implements View.OnClickListener, View
 
                 else {
                     pinEntered = pinEntered.substring(0, pinEntered.length() - 1);
+                    pinInput.setText(pinEntered);
                     return;
                 }
             }
 
-            if(vibratorAvailable)
+            if (vibratorAvailable)
                 vibrator.vibrate(50);
         }
 
 
         //if wifi toolbox button pressed, enable/disable wifi
-        else if(v.getId() == R.id.wifi) {
-            if(wifiManager.isWifiEnabled())
+        else if (v.getId() == R.id.wifi) {
+            if (wifiManager.isWifiEnabled())
                 wifiOn(false);
 
-            else if(!wifiManager.isWifiEnabled())
+            else
                 wifiOn(true);
         }
 
 
         //if data toolbox button pressed, enable/disable mobile data
-        else if(v.getId() == R.id.data) {
+        else if (v.getId() == R.id.data) {
             isMobileDataOn = connManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
 
-            if(isMobileDataOn != null) {
-                if(isMobileDataOn.isConnected()) {
+            if (isMobileDataOn != null) {
+                if (isMobileDataOn.isConnected()) {
                     try {
                         mobileDataOn(false);
 
@@ -1030,15 +1085,15 @@ public class LockActivity extends Activity implements View.OnClickListener, View
 
 
         //if flashlight toolbox button pressed, enable/disable flashlight
-        else if(v.getId() == R.id.flashlight) {
-            if(flashlightAvailable) {
-                if(!isFlashOn) {
+        else if (v.getId() == R.id.flashlight) {
+            if (flashlightAvailable) {
+                if (!isFlashOn) {
                     flashlightOn(true);
                     //add window flag to keep screen on
                     this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
                 }
 
-                else if(isFlashOn) {
+                else if (isFlashOn) {
                     flashlightOn(false);
                     //remove window flag that kept the screen on
                     this.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -1056,27 +1111,27 @@ public class LockActivity extends Activity implements View.OnClickListener, View
 
 
         //if brightness toolbox button pressed, set brightness accordingly and change brightnessMode var
-        else if(v.getId() == R.id.brightness) {
+        else if (v.getId() == R.id.brightness) {
             //if brightnessMode wasn't initialized, set to AUTO
-            if(brightnessMode == -1)
+            if (brightnessMode == -1)
                 brightnessMode = 3;
 
-            if(brightnessMode == 3) {
+            if (brightnessMode == 3) {
                 brightnessChange(0);
                 brightnessMode = 0;
             }
 
-            else if(brightnessMode == 0) {
+            else if (brightnessMode == 0) {
                 brightnessChange(1);
                 brightnessMode = 1;
             }
 
-            else if(brightnessMode == 1) {
+            else if (brightnessMode == 1) {
                 brightnessChange(2);
                 brightnessMode = 2;
             }
 
-            else if(brightnessMode == 2) {
+            else if (brightnessMode == 2) {
                 brightnessChange(3);
                 brightnessMode = 3;
             }
@@ -1084,18 +1139,18 @@ public class LockActivity extends Activity implements View.OnClickListener, View
 
 
         //if sound toolbox button pressed, change ringer mode accordingly and change ringerMode var
-        else if(v.getId() == R.id.sound) {
-            if(ringerMode == 1) {
+        else if (v.getId() == R.id.sound) {
+            if (ringerMode == 1) {
                 ringerChange(2);
                 ringerMode = 2;
             }
 
-            else if(ringerMode == 2) {
+            else if (ringerMode == 2) {
                 ringerChange(3);
                 ringerMode = 3;
             }
 
-            else if(ringerMode == 3) {
+            else if (ringerMode == 3) {
                 ringerChange(1);
                 ringerMode = 1;
             }
@@ -1107,8 +1162,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
 
-        //if lockscreen window doesn't have focus, dismiss system and 3rd-party dialogs
-        if(!hasFocus) {
+        if (!hasFocus) {
             Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
             sendBroadcast(closeDialog);
         }
@@ -1126,7 +1180,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     //if window touched, reset brightness and if touched outside window, move task to queue front
     @Override
     public boolean onTouch(View v, MotionEvent event) {
-        if(event.getAction() == MotionEvent.ACTION_OUTSIDE) {
+        if (event.getAction() == MotionEvent.ACTION_OUTSIDE) {
             activityManager.moveTaskToFront(taskId, 0);
 
             return true;
@@ -1149,7 +1203,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     //added for security safety, home key event detected. move task to queue front
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if(keyCode == KeyEvent.KEYCODE_HOME) {
+        if (keyCode == KeyEvent.KEYCODE_HOME) {
             activityManager.moveTaskToFront(taskId, 0);
 
             return true;
@@ -1160,7 +1214,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        if(event.getKeyCode() == KeyEvent.KEYCODE_HOME) {
+        if (event.getKeyCode() == KeyEvent.KEYCODE_HOME) {
             activityManager.moveTaskToFront(taskId, 0);
 
             return true;
@@ -1176,7 +1230,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
         public void onCallStateChanged(int state, String incomingNumber) {
             super.onCallStateChanged(state, incomingNumber);
 
-            switch(state) {
+            switch (state) {
                 //if state is ringing, set isPhoneCalling var to true and move task to back
                 case TelephonyManager.CALL_STATE_RINGING:
                     isPhoneCalling = true;
@@ -1193,7 +1247,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
 
                 //if call stopped or idle and isPhoneCalling var is true, move task to queue front
                 case TelephonyManager.CALL_STATE_IDLE:
-                    if(isPhoneCalling) {
+                    if (isPhoneCalling) {
                         activityManager.moveTaskToFront(taskId, 0);
 
                         isPhoneCalling = false;
@@ -1211,14 +1265,14 @@ public class LockActivity extends Activity implements View.OnClickListener, View
         super.onResume();
 
         //re-enable home launcher activity component
-        if(packageManager != null)
+        if (packageManager != null)
             packageManager.setComponentEnabledSetting(cnHome, componentEnabled, PackageManager.DONT_KILL_APP);
 
 
-        if(nfcAdapter != null) {
-            if(nfcAdapter.isEnabled()) {
+        if (nfcAdapter != null) {
+            if (nfcAdapter.isEnabled()) {
                 //if Android version lower than 4.4, use foreground dispatch method with tech filters
-                if(Build.VERSION.SDK_INT < 19) {
+                if (Build.VERSION.SDK_INT < 19) {
                     nfcAdapter.enableForegroundDispatch(this, pIntent,
                             new IntentFilter[]{new IntentFilter(NfcAdapter.ACTION_TECH_DISCOVERED)},
                             new String[][]{new String[]{"android.nfc.tech.MifareClassic"},
@@ -1244,12 +1298,12 @@ public class LockActivity extends Activity implements View.OnClickListener, View
                             byte[] tagID = tag.getId();
                             String tagDiscovered = bytesToHex(tagID);
 
-                            if(!tagDiscovered.equals("")) {
+                            if (!tagDiscovered.equals("")) {
                                 //loop through added NFC tags
-                                for(int i = 0; i < tags.length(); i++) {
+                                for (int i = 0; i < tags.length(); i++) {
                                     try {
                                         //when tag discovered id is equal to one of the stored tags id
-                                        if(tagDiscovered.equals(tags.getJSONObject(i).getString("tagID"))) {
+                                        if (tagDiscovered.equals(tags.getJSONObject(i).getString("tagID"))) {
                                             //reset tagDiscovered string, set pinLocked false and store
                                             //remove handle callback and messages
                                             //disable home launcher activity component and finish
@@ -1280,7 +1334,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
                                 unlockText.postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
-                                        if(!pinLocked) {
+                                        if (!pinLocked) {
                                             runOnUiThread(new Runnable() {
                                                 @Override
                                                 public void run() {
@@ -1298,7 +1352,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
                                     }
                                 }, 1500);
 
-                                if(vibratorAvailable)
+                                if (vibratorAvailable)
                                     vibrator.vibrate(250);
 
                                 runOnUiThread(new Runnable() {
@@ -1317,7 +1371,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
 
             //if NFC is off
             else {
-                if(pinLocked)
+                if (pinLocked)
                     unlockText.setText(getResources().getString(R.string.pin_locked_nfc_off));
 
                 else
@@ -1327,7 +1381,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
 
         //if NFC is off
         else {
-            if(pinLocked)
+            if (pinLocked)
                 unlockText.setText(getResources().getString(R.string.pin_locked_nfc_off));
 
             else
@@ -1337,7 +1391,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
 
         //check default launcher, if current package isn't the default one
         //open the 'Select home app' dialog for user to pick default home launcher
-        if(!isMyLauncherDefault()) {
+        if (!isMyLauncherDefault()) {
             packageManager.clearPackagePreferredActivities(getPackageName());
 
             Intent launcherPicker = new Intent();
@@ -1359,19 +1413,22 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     protected void onPause() {
         super.onPause();
 
-        if(flashlightAvailable) {
-            if(isFlashOn) {
+        if (flashlightAvailable) {
+            if (isFlashOn) {
                 flashlightOn(false);
                 this.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             }
         }
 
-        if(nfcAdapter != null)
-            nfcAdapter.disableForegroundDispatch(this);
+        if (Build.VERSION.SDK_INT < 19) {
+            if (nfcAdapter != null)
+                nfcAdapter.disableForegroundDispatch(this);
+        }
 
-        if(Build.VERSION.SDK_INT >= 19)
-            if(nfcAdapter != null)
+        else if (Build.VERSION.SDK_INT >= 19) {
+            if (nfcAdapter != null)
                 nfcAdapter.disableReaderMode(this);
+        }
     }
 
 
@@ -1382,10 +1439,10 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     protected void onDestroy() {
         super.onDestroy();
 
-        if(packageManager != null)
+        if (packageManager != null)
             packageManager.setComponentEnabledSetting(cnHome, componentDisabled, PackageManager.DONT_KILL_APP);
 
-        if(wm != null) {
+        if (wm != null) {
             try {
                 wm.removeView(disableStatusBar);
 
@@ -1403,12 +1460,12 @@ public class LockActivity extends Activity implements View.OnClickListener, View
             e.printStackTrace();
         }
 
-
-        if(flashlightAvailable)
-            if(isFlashOn)
+        if (flashlightAvailable) {
+            if (isFlashOn)
                 this.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
 
-        if(Build.VERSION.SDK_INT >= 19) {
+        if (Build.VERSION.SDK_INT >= 19) {
             this.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         }
 
@@ -1426,7 +1483,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
         writeToJSON();
 
         //reset screen timeout to initial
-        if(cResolver != null && systemScreenTimeout != -1)
+        if (cResolver != null && systemScreenTimeout != -1)
             Settings.System.putInt(cResolver, Settings.System.SCREEN_OFF_TIMEOUT, systemScreenTimeout);
 
         //remove all handler callbacks
@@ -1443,19 +1500,19 @@ public class LockActivity extends Activity implements View.OnClickListener, View
 
         String action = intent.getAction();
 
-        if(NfcAdapter.ACTION_TECH_DISCOVERED.equals(action)) {
+        if (NfcAdapter.ACTION_TECH_DISCOVERED.equals(action)) {
             Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
 
             //get tag id and convert to readable string
             byte[] tagID = tag.getId();
             String tagDiscovered = bytesToHex(tagID);
 
-            if(!tagDiscovered.equals("")) {
+            if (!tagDiscovered.equals("")) {
                 //loop through added NFC tags
-                for(int i = 0; i < tags.length(); i++) {
+                for (int i = 0; i < tags.length(); i++) {
                     //when tag discovered id is equal to one of the stored tags id
                     try {
-                        if(tagDiscovered.equals(tags.getJSONObject(i).getString("tagID"))) {
+                        if (tagDiscovered.equals(tags.getJSONObject(i).getString("tagID"))) {
                             //reset tagDiscovered string, set pinLocked false and store
                             //remove handle callback and messages
                             //disable home launcher activity component and finish
@@ -1486,7 +1543,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
                 unlockText.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        if(!pinLocked)
+                        if (!pinLocked)
                             unlockText.setText(getResources().getString(R.string.scan_to_unlock));
 
                         else
@@ -1494,7 +1551,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
                     }
                 }, 1500);
 
-                if(vibratorAvailable)
+                if (vibratorAvailable)
                     vibrator.vibrate(250);
 
                 unlockText.setText(getResources().getString(R.string.wrong_tag));
@@ -1510,7 +1567,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     public static String bytesToHex(byte[] bytes) {
         char[] hexChars = new char[bytes.length * 2];
 
-        for(int i = 0; i < bytes.length; i++) {
+        for (int i = 0; i < bytes.length; i++) {
             int x = bytes[i] & 0xFF;
             hexChars[i * 2] = hexArray[x >>> 4];
             hexChars[i * 2+1] = hexArray[x & 0x0F];

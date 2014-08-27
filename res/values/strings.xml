@@ -81,15 +81,16 @@
     <string name="tutorial_branding">MoonPi &#169; 2014</string>
     <string name="tutorial_skip">Skip</string>
     <string name="tutorial_welcometo">Welcome to</string>
-    <string name="tutorial_tapunlock">TapUnlock 2.0</string>
-    <string name="tutorial_description">An NFC-enabled lockscreen, now with a completely new
-        design and tons of new features&#x21;</string>
-    <string name="tutorial_navigation">Press \'&gt;\' to navigate forward or press \'Skip\' to exit tutorial</string>
+    <string name="tutorial_tapunlock">TapUnlock</string>
+    <string name="tutorial_description">NFC-enabled lockscreen with a focus on
+        speed, simplicity and security&#x21;</string>
+    <string name="tutorial_navigation">Press \'&gt;\' to navigate forward or press \'Skip\' to
+        exit tutorial</string>
     <string name="tutorial_screenshot2">Enter a PIN</string>
     <string name="tutorial_screenshot3">Press \'+\', Scan your NFC Tag and give it a name</string>
     <string name="tutorial_screenshot4">Enable the lockscreen</string>
     <string name="tutorial_screenshot5">Start the lockscreen by turning your screen off &amp; on again</string>
-    <string name="tutorial_screenshot6">Choose \'NFC Lockscreen\' as your \'Always\' launcher and you\'re done!
-        (The launcher will return to normal once unlocked)</string>
+    <string name="tutorial_screenshot6">Choose \'NFC Lockscreen\' as your \'Always\' launcher
+        and you\'re done!</string>
 
 </resources>

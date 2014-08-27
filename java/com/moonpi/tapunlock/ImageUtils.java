@@ -25,26 +25,44 @@ public class ImageUtils {
     //takes radius 1-25
     public static Bitmap fastBlur(Context context, Bitmap sentBitmap, int radius) {
         float BITMAP_SCALE = 0.1f;
-        float BLUR_RADIUS = (float)radius;
+        float BLUR_RADIUS = (float) radius;
 
-        if(Build.VERSION.SDK_INT > 16) {
+        if (Build.VERSION.SDK_INT > 16) {
             int width = Math.round(sentBitmap.getWidth() * BITMAP_SCALE);
             int height = Math.round(sentBitmap.getHeight() * BITMAP_SCALE);
 
-            Bitmap inputBitmap = Bitmap.createScaledBitmap(sentBitmap, width, height, false);
-            Bitmap outputBitmap = Bitmap.createBitmap(inputBitmap);
+            Bitmap inputBitmap = null;
+            try {
+                inputBitmap = Bitmap.createScaledBitmap(sentBitmap, width, height, false);
 
-            RenderScript rs = RenderScript.create(context);
-            ScriptIntrinsicBlur theIntrinsic = ScriptIntrinsicBlur.create(rs, Element.U8_4(rs));
-            Allocation tmpIn = Allocation.createFromBitmap(rs, inputBitmap);
-            Allocation tmpOut = Allocation.createFromBitmap(rs, outputBitmap);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
 
-            theIntrinsic.setRadius(BLUR_RADIUS);
-            theIntrinsic.setInput(tmpIn);
-            theIntrinsic.forEach(tmpOut);
-            tmpOut.copyTo(outputBitmap);
+            Bitmap outputBitmap = null;
+            try {
+                if (inputBitmap != null)
+                    outputBitmap = Bitmap.createBitmap(inputBitmap);
 
-            return outputBitmap;
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
+
+            if (outputBitmap != null) {
+                RenderScript rs = RenderScript.create(context);
+                ScriptIntrinsicBlur theIntrinsic = ScriptIntrinsicBlur.create(rs, Element.U8_4(rs));
+                Allocation tmpIn = Allocation.createFromBitmap(rs, inputBitmap);
+                Allocation tmpOut = Allocation.createFromBitmap(rs, outputBitmap);
+
+                theIntrinsic.setRadius(BLUR_RADIUS);
+                theIntrinsic.setInput(tmpIn);
+                theIntrinsic.forEach(tmpOut);
+                tmpOut.copyTo(outputBitmap);
+
+                return outputBitmap;
+            }
         }
 
         return null;
@@ -53,13 +71,20 @@ public class ImageUtils {
 
     //Bitmap function that turns the passed 'drawable' into a Bitmap
     public static Bitmap drawableToBitmap(Drawable drawable) {
-        if(drawable instanceof BitmapDrawable) {
+        if (drawable instanceof BitmapDrawable) {
             return ((BitmapDrawable)drawable).getBitmap();
         }
 
         Bitmap bitmap = null;
-        if(!(drawable instanceof ColorDrawable)) {
-            bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        if (!(drawable instanceof ColorDrawable)) {
+            try {
+                bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+
+            } catch (IllegalArgumentException e) {
+                e.printStackTrace();
+                return null;
+            }
+
             Canvas canvas = new Canvas(bitmap);
             drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
             drawable.draw(canvas);
@@ -70,39 +95,58 @@ public class ImageUtils {
 
 
     //function to store passed Bitmap as .png on external storage
-    public static void storeImage(Bitmap image) {
-        File pictureFile = new File(Environment.getExternalStorageDirectory() + "/TapUnlock/blurredWallpaper.png");
+    public static boolean storeImage(Bitmap image) {
+        if (isExternalStorageWritable()) {
+            File pictureFile = new File(Environment.getExternalStorageDirectory() + "/TapUnlock/blurredWallpaper.png");
 
-        try {
-            FileOutputStream fos = new FileOutputStream(pictureFile);
-            image.compress(Bitmap.CompressFormat.PNG, 100, fos);
-            fos.flush();
-            fos.close();
+            try {
+                FileOutputStream fos = new FileOutputStream(pictureFile);
+                image.compress(Bitmap.CompressFormat.PNG, 90, fos);
+                fos.flush();
+                fos.close();
 
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            return true;
         }
+
+        return false;
     }
 
 
     //boolean function to check whether a blurred wallpaper png exists or not
-    public static Boolean doesBlurredWallpaperExist() {
+    public static boolean doesBlurredWallpaperExist() {
         File blurredWallpaper = new File(Environment.getExternalStorageDirectory() + "/TapUnlock/blurredWallpaper.png");
 
-        if(blurredWallpaper.exists())
-            return true;
-
-        else
-            return false;
+        return blurredWallpaper.exists();
     }
 
 
     //Drawable function that returns the blurred wallpaper png as Drawable
     public static Drawable retrieveWallpaperDrawable() {
-        Drawable wallpaper = Drawable.createFromPath(Environment.getExternalStorageDirectory() + "/TapUnlock/blurredWallpaper.png");
+        if (isExternalStorageReadable())
+            return Drawable.createFromPath(Environment.getExternalStorageDirectory() + "/TapUnlock/blurredWallpaper.png");
 
-        return wallpaper;
+        return null;
+    }
+
+
+    //return true if external storage is writable, false otherwise
+    public static boolean isExternalStorageWritable() {
+        String state = Environment.getExternalStorageState();
+
+        return Environment.MEDIA_MOUNTED.equals(state);
+    }
+
+    //return true if external storage is readable, false otherwise
+    public static boolean isExternalStorageReadable() {
+        String state = Environment.getExternalStorageState();
+
+        return Environment.MEDIA_MOUNTED.equals(state) ||
+            Environment.MEDIA_MOUNTED_READ_ONLY.equals(state);
     }
 }

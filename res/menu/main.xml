@@ -11,5 +11,5 @@
         android:title="@string/tutorial"
         android:orderInCategory="102"
         android:showAsAction="never" />
-
+        
 </menu>
