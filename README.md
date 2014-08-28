@@ -4,7 +4,7 @@
 
 This repo contains the official source code for TapUnlock.
 
-Current app version is 2.0.8 beta.
+Current app version is 2.0.9 beta.
 
 ### License
 

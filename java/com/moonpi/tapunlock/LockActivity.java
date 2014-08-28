@@ -124,6 +124,8 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     private ImageButton brightness;
     private ImageButton sound;
 
+    //max number of times the launcher pick dialog toast should show
+    private int launcherPickToast = 2;
     private Boolean isPhoneCalling = false; //true if phone state listener is ringing/offhook
 
     //contents of JSON file
@@ -471,16 +473,19 @@ public class LockActivity extends Activity implements View.OnClickListener, View
         if (!isMyLauncherDefault()) {
             packageManager.clearPackagePreferredActivities(getPackageName());
 
-            final Intent launcherPicker = new Intent();
+            Intent launcherPicker = new Intent();
             launcherPicker.setAction(Intent.ACTION_MAIN);
             launcherPicker.addCategory(Intent.CATEGORY_HOME);
-
-            Toast toast = Toast.makeText(getApplicationContext(),
-                    R.string.toast_launcher_dialog,
-                    Toast.LENGTH_LONG);
-            toast.show();
-
             startActivity(launcherPicker);
+
+            if (launcherPickToast > 0) {
+                launcherPickToast -= 1;
+
+                Toast toast = Toast.makeText(getApplicationContext(),
+                        R.string.toast_launcher_dialog,
+                        Toast.LENGTH_LONG);
+                toast.show();
+            }
         }
     }
 
@@ -1009,26 +1014,28 @@ public class LockActivity extends Activity implements View.OnClickListener, View
 
         //if delete pressed, delete last element of pinEntered; if pinEntered is empty, do nothing
         else if (v.getId() == R.id.delete) {
-            if (pinEntered.length() > 0) {
-                if (pinEntered.length() == 1) {
-                    pinEntered = "";
-                    pinInput.setText(pinEntered);
+            if (!pinLocked) {
+                if (pinEntered.length() > 0) {
+                    if (pinEntered.length() == 1) {
+                        pinEntered = "";
+                        pinInput.setText(pinEntered);
 
-                    if (vibratorAvailable)
-                        vibrator.vibrate(50);
+                        if (vibratorAvailable)
+                            vibrator.vibrate(50);
 
-                    return;
+                        return;
+                    }
+
+                    else {
+                        pinEntered = pinEntered.substring(0, pinEntered.length() - 1);
+                        pinInput.setText(pinEntered);
+                        return;
+                    }
                 }
 
-                else {
-                    pinEntered = pinEntered.substring(0, pinEntered.length() - 1);
-                    pinInput.setText(pinEntered);
-                    return;
-                }
+                if (vibratorAvailable)
+                    vibrator.vibrate(50);
             }
-
-            if (vibratorAvailable)
-                vibrator.vibrate(50);
         }
 
 
@@ -1162,7 +1169,8 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
 
-        if (!hasFocus) {
+        if (!hasFocus && !isPhoneCalling) {
+            activityManager.moveTaskToFront(taskId, 0);
             Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
             sendBroadcast(closeDialog);
         }
@@ -1191,6 +1199,12 @@ public class LockActivity extends Activity implements View.OnClickListener, View
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_OUTSIDE) {
+            activityManager.moveTaskToFront(taskId, 0);
+
+            return true;
+        }
+
         return true;
     }
 
@@ -1267,7 +1281,6 @@ public class LockActivity extends Activity implements View.OnClickListener, View
         //re-enable home launcher activity component
         if (packageManager != null)
             packageManager.setComponentEnabledSetting(cnHome, componentEnabled, PackageManager.DONT_KILL_APP);
-
 
         if (nfcAdapter != null) {
             if (nfcAdapter.isEnabled()) {
@@ -1388,7 +1401,6 @@ public class LockActivity extends Activity implements View.OnClickListener, View
                 unlockText.setText(getResources().getString(R.string.scan_to_unlock_nfc_off));
         }
 
-
         //check default launcher, if current package isn't the default one
         //open the 'Select home app' dialog for user to pick default home launcher
         if (!isMyLauncherDefault()) {
@@ -1397,13 +1409,16 @@ public class LockActivity extends Activity implements View.OnClickListener, View
             Intent launcherPicker = new Intent();
             launcherPicker.setAction(Intent.ACTION_MAIN);
             launcherPicker.addCategory(Intent.CATEGORY_HOME);
-
-            Toast toast = Toast.makeText(getApplicationContext(),
-                    R.string.toast_launcher_dialog,
-                    Toast.LENGTH_LONG);
-            toast.show();
-
             startActivity(launcherPicker);
+
+            if (launcherPickToast > 0) {
+                launcherPickToast -= 1;
+
+                Toast toast = Toast.makeText(getApplicationContext(),
+                        R.string.toast_launcher_dialog,
+                        Toast.LENGTH_LONG);
+                toast.show();
+            }
         }
     }
 
