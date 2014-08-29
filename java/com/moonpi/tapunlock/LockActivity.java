@@ -311,8 +311,10 @@ public class LockActivity extends Activity implements View.OnClickListener, View
         //get default wallpaper and set as background drawable
         if (Build.VERSION.SDK_INT < 17 || blur == 0 || !ImageUtils.doesBlurredWallpaperExist()) {
             WallpaperManager wallpaperManager = WallpaperManager.getInstance(this);
-            Drawable wallpaperDrawable = wallpaperManager.getFastDrawable();
-            getWindow().setBackgroundDrawable(wallpaperDrawable);
+            Drawable wallpaperDrawable = wallpaperManager.peekFastDrawable();
+
+            if (wallpaperDrawable != null)
+                getWindow().setBackgroundDrawable(wallpaperDrawable);
         }
 
         //otherwise, retrieve blurred wallpaper and set as background drawable
@@ -324,8 +326,10 @@ public class LockActivity extends Activity implements View.OnClickListener, View
 
             else {
                 WallpaperManager wallpaperManager = WallpaperManager.getInstance(this);
-                Drawable wallpaperDrawable = wallpaperManager.getFastDrawable();
-                getWindow().setBackgroundDrawable(wallpaperDrawable);
+                Drawable wallpaperDrawable = wallpaperManager.peekFastDrawable();
+
+                if (wallpaperDrawable != null)
+                    getWindow().setBackgroundDrawable(wallpaperDrawable);
             }
         }
 

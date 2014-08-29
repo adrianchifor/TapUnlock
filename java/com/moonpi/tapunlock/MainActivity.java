@@ -277,23 +277,25 @@ public class MainActivity extends Activity implements View.OnClickListener,
                         if (!ImageUtils.doesBlurredWallpaperExist()) {
                             //get default wallpaper
                             WallpaperManager wallpaperManager = WallpaperManager.getInstance(this);
-                            final Drawable wallpaperDrawable = wallpaperManager.getFastDrawable();
+                            final Drawable wallpaperDrawable = wallpaperManager.peekFastDrawable();
 
-                            //default wallpaper to bitmap - fastBlur the bitmap - store bitmap
-                            new Thread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    Bitmap bitmapToBlur = ImageUtils.drawableToBitmap(wallpaperDrawable);
+                            if (wallpaperDrawable != null) {
+                                //default wallpaper to bitmap - fastBlur the bitmap - store bitmap
+                                new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Bitmap bitmapToBlur = ImageUtils.drawableToBitmap(wallpaperDrawable);
 
-                                    Bitmap blurredWallpaper = null;
-                                    if(bitmapToBlur != null)
-                                        blurredWallpaper = ImageUtils.fastBlur(MainActivity.this, bitmapToBlur, blur);
+                                        Bitmap blurredWallpaper = null;
+                                        if (bitmapToBlur != null)
+                                            blurredWallpaper = ImageUtils.fastBlur(MainActivity.this, bitmapToBlur, blur);
 
-                                    if(blurredWallpaper != null) {
-                                        ImageUtils.storeImage(blurredWallpaper);
+                                        if (blurredWallpaper != null) {
+                                            ImageUtils.storeImage(blurredWallpaper);
+                                        }
                                     }
-                                }
-                            }).start();
+                                }).start();
+                            }
                         }
                     }
                 }
@@ -905,55 +907,64 @@ public class MainActivity extends Activity implements View.OnClickListener,
 
                     if (folderSuccess) {
                         WallpaperManager wallpaperManager = WallpaperManager.getInstance(this);
-                        final Drawable wallpaperDrawable = wallpaperManager.getFastDrawable();
+                        final Drawable wallpaperDrawable = wallpaperManager.peekFastDrawable();
 
-                        //display indeterminate progress bar while blurring
-                        progressBar.setVisibility(View.VISIBLE);
+                        if (wallpaperDrawable != null) {
+                            //display indeterminate progress bar while blurring
+                            progressBar.setVisibility(View.VISIBLE);
 
-                        new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Bitmap bitmapToBlur = ImageUtils.drawableToBitmap(wallpaperDrawable);
+                            new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Bitmap bitmapToBlur = ImageUtils.drawableToBitmap(wallpaperDrawable);
 
-                                Bitmap blurredWallpaper = null;
-                                if (bitmapToBlur != null)
-                                    blurredWallpaper = ImageUtils.fastBlur(MainActivity.this, bitmapToBlur, blur);
+                                    Bitmap blurredWallpaper = null;
+                                    if (bitmapToBlur != null)
+                                        blurredWallpaper = ImageUtils.fastBlur(MainActivity.this, bitmapToBlur, blur);
 
-                                boolean stored = false;
-                                if (blurredWallpaper != null) {
-                                    stored = ImageUtils.storeImage(blurredWallpaper);
+                                    boolean stored = false;
+                                    if (blurredWallpaper != null) {
+                                        stored = ImageUtils.storeImage(blurredWallpaper);
 
-                                    final boolean finalStored = stored;
-                                    runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            progressBar.setVisibility(View.INVISIBLE);
+                                        final boolean finalStored = stored;
+                                        runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                progressBar.setVisibility(View.INVISIBLE);
 
-                                            if (finalStored) {
+                                                if (finalStored) {
+                                                    Toast toast = Toast.makeText(getApplicationContext(),
+                                                            R.string.toast_wallpaper_refreshed,
+                                                            Toast.LENGTH_SHORT);
+                                                    toast.show();
+                                                }
+                                            }
+                                        });
+                                    }
+
+                                    if (bitmapToBlur == null || blurredWallpaper == null || !stored) {
+                                        runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                progressBar.setVisibility(View.INVISIBLE);
+
                                                 Toast toast = Toast.makeText(getApplicationContext(),
-                                                        R.string.toast_wallpaper_refreshed,
+                                                        R.string.toast_wallpaper_not_refreshed,
                                                         Toast.LENGTH_SHORT);
                                                 toast.show();
                                             }
-                                        }
-                                    });
+                                        });
+                                    }
                                 }
+                            }).start();
+                        }
 
-                                if (bitmapToBlur == null || blurredWallpaper == null || !stored) {
-                                    runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            progressBar.setVisibility(View.INVISIBLE);
-
-                                            Toast toast = Toast.makeText(getApplicationContext(),
-                                                    R.string.toast_wallpaper_not_refreshed,
-                                                    Toast.LENGTH_SHORT);
-                                            toast.show();
-                                        }
-                                    });
-                                }
-                            }
-                        }).start();
+                        else {
+                            Toast toast = Toast.makeText(getApplicationContext(),
+                                    R.string.toast_wallpaper_not_refreshed,
+                                    Toast.LENGTH_SHORT);
+                            toast.show();
+                        }
                     }
                 }
             }
