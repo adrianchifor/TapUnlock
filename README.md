@@ -18,4 +18,4 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
 ## Donate
 
-Being free and ads-less, we rely on donations to deliver new features and bug fixes at a faster rate and to increase the overall quality of the app. To support the app, visit the following [link](http://goo.gl/TQRlTa) for PayPal/Card donations. For Bitcoin donations, our address is: 1NZGAU1rEs1zBpwdjmnBjiyRsJHfycWhSF. Donations as 'in-app purchases' are also available through the 'Donate' section inside the app. Thank you!
+Being free and ads-less, we rely on donations to deliver new features and updates at a faster rate and to increase the overall quality of the app. To support the app, visit the following [link](http://goo.gl/TQRlTa) for PayPal/Card donations. For Bitcoin donations, our address is: 1NZGAU1rEs1zBpwdjmnBjiyRsJHfycWhSF. Donations as 'in-app purchases' are also available through the 'Donate' section inside the app. Thank you!
