@@ -1,6 +1,6 @@
 ## TapUnlock (NFC Lockscreen)
 
-[TapUnlock](https://play.google.com/store/apps/details?id=com.moonpi.tapunlock) is an NFC-enabled lockscreen for Android with a focus on speed, simplicity and security. For more info, screenshots and FAQs go to the [Google Play Store.](https://play.google.com/store/apps/details?id=com.moonpi.tapunlock)
+[TapUnlock](https://play.google.com/store/apps/details?id=com.moonpi.tapunlock) is an NFC-enabled lockscreen for Android with a focus on speed, simplicity and security. For more info, screenshots and FAQs visit the [Google Play Store](https://play.google.com/store/apps/details?id=com.moonpi.tapunlock).
 
 This repo contains the official source code for TapUnlock.
 
@@ -18,4 +18,4 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
 ## Donate
 
-Being free and ads-less, we rely on donations to deliver new features and updates at a faster rate and to increase the overall quality of the app. To support the app, visit the following [link](http://goo.gl/TQRlTa) for PayPal/Card donations. For Bitcoin donations, our address is: 1NZGAU1rEs1zBpwdjmnBjiyRsJHfycWhSF. Donations as 'in-app purchases' are also available through the 'Donate' section inside the app. Any amount would be most appreciated. Thank you!
+To support development, you can donate with PayPal or Card using the following [link](http://goo.gl/TQRlTa). For Bitcoin donations, our address is: 1NZGAU1rEs1zBpwdjmnBjiyRsJHfycWhSF. Donations as 'In-app purchases' are also available through the 'Donate' section inside the app. The donations help us implement new features and deliver updates at a faster rate. Any amount would be most appreciated. Thank you!
