@@ -16,6 +16,6 @@ http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
-## Donate
+### Donate
 
 To support development, you can donate with PayPal or Card using the following [link](http://goo.gl/TQRlTa). For Bitcoin donations, our address is: 1NZGAU1rEs1zBpwdjmnBjiyRsJHfycWhSF. Donations as 'In-app purchases' are also available through the 'Donate' section inside the app. The donations help us implement new features and deliver updates at a faster rate. Any amount would be most appreciated. Thank you!
