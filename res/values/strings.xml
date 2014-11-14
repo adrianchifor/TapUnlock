@@ -2,10 +2,8 @@
 <resources>
 
     <string name="app_name">TapUnlock</string>
-    <string name="title_activity_tutorial">Tutorial</string>
     <string name="title_activity_lock">NFC Lockscreen</string>
     <!-- -->
-    <string name="scan_to_unlock">Scan NFC Tag or enter PIN</string>
     <string name="scan_to_unlock_nfc_off">NFC seems to be off. Enter PIN</string>
     <string name="wrong_tag">Wrong NFC Tag</string>
     <string name="wrong_pin">Wrong PIN. Try again</string>
@@ -14,7 +12,28 @@
     <string name="time_text_no_time">13:37</string>
     <string name="date_text_no_date">Mon 4 May</string>
     <string name="battery_text_no_battery">60% Battery</string>
+    <string name="battery_text">Battery</string>
     <string name="delete">Delete</string>
+    <string name="zero_button_content">Zero</string>
+    <string name="one_button_content">One</string>
+    <string name="two_button_content">Two</string>
+    <string name="three_button_content">Three</string>
+    <string name="four_button_content">Four</string>
+    <string name="five_button_content">Five</string>
+    <string name="six_button_content">Six</string>
+    <string name="seven_button_content">Seven</string>
+    <string name="eight_button_content">Eight</string>
+    <string name="nine_button_content">Nine</string>
+    <string name="delete_button_content">Delete</string>
+    <string name="wifi_button_content">Wi-Fi</string>
+    <string name="mobile_button_content">Mobile data</string>
+    <string name="flashlight_button_content">Flashlight</string>
+    <string name="brightness_button_content">Brightness</string>
+    <string name="speaker_button_content">Sound modes</string>
+    <string name="phone_button_content">Phone</string>
+    <string name="camera_button_content">Camera</string>
+    <string name="up_button_content">Show toolbox</string>
+    <string name="down_button_content">Hide toolbox</string>
     <!-- -->
     <string name="pin">PIN: </string>
     <string name="enter_pin_hint">Enter PIN</string>
@@ -64,6 +83,8 @@
     <string name="toast_wallpaper_not_refreshed">Wallpaper failed to refresh</string>
     <string name="toast_cannot_blur">Needs Android 4.2 and above</string>
     <string name="toast_camera_failed">Failed to get Camera flashlight</string>
+    <string name="toast_phone_open">Unlock to open Phone</string>
+    <string name="toast_camera_open">Unlock to open Camera</string>
     <!-- -->
     <string name="notification_text">NFC Lockscreen is enabled</string>
     <!-- -->
@@ -75,22 +96,5 @@
     <string name="long_press_context">Long press to rename or delete</string>
     <string name="new_tag_description">Add new Tag</string>
     <string name="scan_tag_description">Scan NFC Tag Image</string>
-    <!-- -->
-    <string name="rate_app">Rate app</string>
-    <string name="tutorial">Tutorial</string>
-    <string name="tutorial_branding">MoonPi &#169; 2014</string>
-    <string name="tutorial_skip">Skip</string>
-    <string name="tutorial_welcometo">Welcome to</string>
-    <string name="tutorial_tapunlock">TapUnlock</string>
-    <string name="tutorial_description">NFC-enabled lockscreen with a focus on
-        speed, simplicity and security&#x21;</string>
-    <string name="tutorial_navigation">Press \'&gt;\' to navigate forward or press \'Skip\' to
-        exit tutorial</string>
-    <string name="tutorial_screenshot2">Enter a PIN</string>
-    <string name="tutorial_screenshot3">Press \'+\', Scan your NFC Tag and give it a name</string>
-    <string name="tutorial_screenshot4">Enable the lockscreen</string>
-    <string name="tutorial_screenshot5">Start the lockscreen by turning your screen off &amp; on again</string>
-    <string name="tutorial_screenshot6">Choose \'NFC Lockscreen\' as your \'Always\' launcher
-        and you\'re done!</string>
 
 </resources>

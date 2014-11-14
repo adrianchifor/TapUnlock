@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Many thanks to Fabio Carpi for providing the translation! -->
+    <string name="app_name">TapUnlock</string>
+    <string name="title_activity_lock">NFC Lockscreen</string>
+    <!-- -->
+    <string name="scan_to_unlock_nfc_off">NFC está desligado. Digite seu PIN</string>
+    <string name="wrong_tag">Tag NFC incorreta</string>
+    <string name="wrong_pin">PIN incorreto. Tente novamente</string>
+    <string name="pin_locked">PIN travado por 30s. Leia tag NFC</string>
+    <string name="pin_locked_nfc_off">PIN travado por 30s</string>
+    <string name="time_text_no_time">13:37</string>
+    <string name="date_text_no_date">Seg 4 Mai</string>
+    <string name="battery_text_no_battery">60% Bateria</string>
+    <string name="battery_text">Bateria</string>
+    <string name="delete">Delete</string>
+    <string name="zero_button_content">Zero</string>
+    <string name="one_button_content">Um</string>
+    <string name="two_button_content">Dois</string>
+    <string name="three_button_content">Três</string>
+    <string name="four_button_content">Quatro</string>
+    <string name="five_button_content">Cinco</string>
+    <string name="six_button_content">Seis</string>
+    <string name="seven_button_content">Sete</string>
+    <string name="eight_button_content">Oito</string>
+    <string name="nine_button_content">Nove</string>
+    <string name="delete_button_content">Apagar</string>
+    <string name="wifi_button_content">Wi-Fi</string>
+    <string name="mobile_button_content">Dados móveis</string>
+    <string name="flashlight_button_content">Lanterna</string>
+    <string name="brightness_button_content">Brilho</string>
+    <string name="speaker_button_content">Modos de som</string>
+    <string name="phone_button_content">Telefone</string>
+    <string name="camera_button_content">Câmera</string>
+    <string name="up_button_content">Mostrar caixa de ferramentas</string>
+    <string name="down_button_content">esconder caixa de ferramentas</string>
+    <!-- -->
+    <string name="pin">PIN: </string>
+    <string name="enter_pin_hint">Digite PIN</string>
+    <string name="ok_description">Definir PIN</string>
+    <string name="nfc_lockscreen">NFC Lockscreen</string>
+    <string name="lockscreen_enabled_disabled">Lockscreen</string>
+    <string name="lockscreen_enabled">habilitado</string>
+    <string name="lockscreen_disabled">desabilitado</string>
+    <string name="background_blur_title">Efeito do papel de parede</string>
+    <string name="background_blur_message">Nível:</string>
+    <string name="background_blur_button_refresh">Atualizar imagem</string>
+    <string name="nfc_tags">Tags NFC</string>
+    <string name="no_nfc_tags">Clique em \'+\' para adicionar</string>
+    <!-- -->
+    <string name="scan_tag_dialog_title">Leia uma tag NFC</string>
+    <string name="set_tag_name_dialog_title">Nome da tag NFC</string>
+    <string name="set_tag_name_dialog_hint">Digite nome da tag NFC</string>
+    <string name="nfc_off_dialog_title">NFC está desligado</string>
+    <string name="nfc_off_dialog_message">NFC está desligado. Deseja liga-lo?
+        (\'Sim\' abrirá as configurações)</string>
+    <string name="rate_app_dialog_title">Avaliar app</string>
+    <string name="rate_app_dialog_message">Abrir o Play Store?
+        (Obrigado por avaliar&#x21; Nós realmente apreciamos&#x21;)</string>
+    <string name="launcher_dialog_title">Selecione launcher</string>
+    <string name="set_pin_confirmation">Você confirma o pin digitado?</string>
+    <string name="rename_tag_dialog_title">Renomear tag NFC</string>
+    <string name="rename_tag_dialog_button">Renomear</string>
+    <!-- -->
+    <string name="yes_button">Sim</string>
+    <string name="ok_button">OK</string>
+    <string name="no_button">Não</string>
+    <!-- -->
+    <string name="toast_pin_set">PIN definido com êxito</string>
+    <string name="toast_pin_needs4digits">PIN precisa ter no mínimo 4 digitos</string>
+    <string name="toast_lock_set_pin">Você deve definir um PIN antes de habilitar o bloqueio</string>
+    <string name="toast_lock_add_tag">Você deve adicionar uma tag antes de habilitar o bloqueio</string>
+    <string name="toast_lock_enabled">Bloqueio NFC habilitado</string>
+    <string name="toast_lock_disabled">Bloqueio NFC desabilitado</string>
+    <string name="toast_tag_added">Tag NFC adicionada</string>
+    <string name="toast_tag_renamed">Tag NFC renomeada</string>
+    <string name="toast_tag_deleted">Tag NFC apagada</string>
+    <string name="toast_no_flashlight">Lanterna LED não encontrada</string>
+    <string name="toast_no_mobile_data">Dados móveis não disponível</string>
+    <string name="toast_launcher_dialog">Selecione \'NFC Lockscreen\' e clique em \'Sempre\'
+        para máxima segurança</string>
+    <string name="toast_wallpaper_refreshed">Imagem atualizada com êxito</string>
+    <string name="toast_wallpaper_not_refreshed">Falha ao atualizar imagem</string>
+    <string name="toast_cannot_blur">Requer Android 4.2 ou superior</string>
+    <string name="toast_camera_failed">Falha ao obter flash da câmera</string>
+    <string name="toast_phone_open">Destrave para abrir o telefone</string>
+    <string name="toast_camera_open">Destrave para abrir a câmera</string>
+    <!-- -->
+    <string name="notification_text">NFC Lockscreen está habilitado</string>
+    <!-- -->
+    <string name="rename_context_menu">Renomear Tag</string>
+    <string name="delete_context_menu">Apagar Tag</string>
+    <string name="delete_context_menu_dialog1">Deseja realmente apagar</string>
+    <string name="delete_context_menu_dialog2">Deseja realmente apagar esta tag?</string>
+    <string name="no_tag_name">Tag</string>
+    <string name="long_press_context">Clique e segure para renomear ou apagar</string>
+    <string name="new_tag_description">Adicionar nova Tag</string>
+    <string name="scan_tag_description">Leia imagem de tag NFC</string>
+
+</resources>

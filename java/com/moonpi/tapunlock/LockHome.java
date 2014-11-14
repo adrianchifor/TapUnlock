@@ -4,7 +4,7 @@ import android.app.Activity;
 import android.os.Bundle;
 
 
-//ninja 'Home default launcher' when lockscreen is active
+// Ninja 'Home default launcher' when lockscreen is active
 public class LockHome extends Activity {
 
     @Override

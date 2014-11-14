@@ -23,6 +23,7 @@ import android.os.Environment;
 import android.provider.Settings;
 import android.text.InputFilter;
 import android.text.InputType;
+import android.util.TypedValue;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -78,8 +79,9 @@ public class MainActivity extends Activity implements View.OnClickListener,
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
+    */
 
-
+    /*
     JSON file structure:
     root_OBJ:{
         settings_OBJ:{
@@ -87,7 +89,6 @@ public class MainActivity extends Activity implements View.OnClickListener,
             "pin":"4-6 digits",
             "pinLocked":true/false,
             "blur":0-25,
-            "tutorial":true/false,
             tags_ARR:[
                 {"tagName":"Bracelet", "tagID":"86ja8asdbb2385"},
                 {"tagName":"Ring", "tagID":"r2365sd98123sj"} etc.
@@ -96,14 +97,14 @@ public class MainActivity extends Activity implements View.OnClickListener,
     }
     */
 
-    private static final int DIALOG_READ = 1; //int for 'Scan NFC Tag' dialog
-    private static final int DIALOG_SET_TAGNAME = 2; //int for 'Set Tag name' dialog
-    private static final int SEEK_BAR_INTERVAL = 5; //interval skip for seek bar
+    private static final int DIALOG_READ = 1; // int for 'Scan NFC Tag' dialog
+    private static final int DIALOG_SET_TAGNAME = 2; // int for 'Set Tag name' dialog
+    private static final int SEEK_BAR_INTERVAL = 5; // Interval skip for seek bar
 
     private NfcAdapter nfcAdapter;
-    private PendingIntent pIntent; //PendingIntent for NFC tag discovery
+    private PendingIntent pIntent; // PendingIntent for NFC tag discovery
 
-    //layout items
+    // Layout items
     private ScrollView scrollView;
     private EditText pinEdit;
     private SeekBar seekBar;
@@ -113,22 +114,23 @@ public class MainActivity extends Activity implements View.OnClickListener,
 
     private InputMethodManager imm;
 
-    //content of JSON file
+    // Content of JSON file
     private JSONObject root;
     private JSONObject settings;
     private JSONArray tags;
-    private Boolean lockscreen;
-    private String pin;
-    private Boolean pinLocked;
     private int blur;
-    private Boolean tutorial;
 
-    private String tagID = ""; //ID of tag discovered
-    private Boolean dialogCancelled = false; //var for when 'Scan NFC Tag' dialog is called
-    private Boolean onStart = false; //var for when lockscreen is enabled when app started
+    private String tagID = ""; // ID of tag discovered
+    private Boolean dialogCancelled = false; // var for when 'Scan NFC Tag' dialog is called
+    private Boolean onStart = false; // var for when lockscreen is enabled when app started
+
+    // Used for action bar title design
+    private Typeface lobsterTwo;
+    private TextView actionBarTitleView;
 
 
-    //Custom tag adapter class (to populate NFC tags listView)
+
+    // Custom tag adapter class (to populate NFC tags listView)
     private class TagAdapter extends BaseAdapter implements ListAdapter {
 
         Activity parentActivity;
@@ -176,7 +178,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
 
             JSONObject jsonData = getItem(position);
 
-            //set listView item text to tagName
+            // Set listView item text to tagName
             if (jsonData != null) {
                 try {
                     String data = jsonData.getString("tagName");
@@ -192,34 +194,36 @@ public class MainActivity extends Activity implements View.OnClickListener,
     }
 
 
-    private TagAdapter adapter; //instance of TagAdapter
+    private TagAdapter adapter; // Instance of TagAdapter
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        //get lobster_two asset and create typeface
-        //set action bar title to lobster_two typeface
-        Typeface lobsterTwo = Typeface.createFromAsset(getAssets(), "lobster_two.otf");
+        // Get lobster_two asset and create typeface
+        // Set action bar title to lobster_two typeface
+        lobsterTwo = Typeface.createFromAsset(getAssets(), "lobster_two.otf");
 
         int actionBarTitle = Resources.getSystem().getIdentifier("action_bar_title", "id", "android");
-        TextView actionBarTitleView = (TextView) getWindow().findViewById(actionBarTitle);
+        actionBarTitleView = (TextView) getWindow().findViewById(actionBarTitle);
 
         if (actionBarTitleView != null) {
             actionBarTitleView.setTypeface(lobsterTwo);
+            actionBarTitleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 28f);
+            actionBarTitleView.setTextColor(getResources().getColor(R.color.blue));
         }
 
         setContentView(R.layout.activity_main);
 
-        //hide keyboard on app launch
+        // Hide keyboard on app launch
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
         imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 
-        //get NFC service and adapter
+        // Get NFC service and adapter
         NfcManager nfcManager = (NfcManager) this.getSystemService(Context.NFC_SERVICE);
         nfcAdapter = nfcManager.getDefaultAdapter();
 
-        //create PendingIntent for enableForegroundDispatch for NFC tag discovery
+        // Create PendingIntent for enableForegroundDispatch for NFC tag discovery
         pIntent = PendingIntent.getActivity(
                 this, 0, new Intent(this, getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
 
@@ -227,40 +231,10 @@ public class MainActivity extends Activity implements View.OnClickListener,
         writeToJSON();
         readFromJSON();
 
-        //if tutorial boolean is true (app started for the first time)
-        //re-create settings file, set tutorial boolean to false and launch tutorial
-        try {
-            if (settings.getBoolean("tutorial")) {
-                File file = new File(getFilesDir(), "settings.json");
-                boolean deleted = file.delete();
 
-                //if file successfully deleted, re-create settings file
-                if (deleted) {
-                    readFromJSON();
-                    writeToJSON();
-                    readFromJSON();
-                }
-
-                //set tutorial boolean to false
-                settings.put("tutorial", false);
-                tutorial = false;
-
-                writeToJSON();
-
-                //launch tutorial activity
-                Intent intent = new Intent(this, TutorialActivity.class);
-
-                startActivity(intent);
-            }
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-
-        //if Android 4.2 or bigger
+        // If Android 4.2 or bigger
         if (Build.VERSION.SDK_INT > 16) {
-            //check if TapUnlock folder exists, if not, create directory
+            // Check if TapUnlock folder exists, if not, create directory
             File folder = new File(Environment.getExternalStorageDirectory() + "/TapUnlock");
             boolean folderSuccess = true;
 
@@ -269,18 +243,18 @@ public class MainActivity extends Activity implements View.OnClickListener,
             }
 
             try {
-                //if blur var bigger than 0
+                // If blur var bigger than 0
                 if (settings.getInt("blur") > 0) {
-                    //if folder exists or successfully created
+                    // If folder exists or successfully created
                     if (folderSuccess) {
-                        //if blurred wallpaper file doesn't exist
+                        // If blurred wallpaper file doesn't exist
                         if (!ImageUtils.doesBlurredWallpaperExist()) {
-                            //get default wallpaper
+                            // Get default wallpaper
                             WallpaperManager wallpaperManager = WallpaperManager.getInstance(this);
                             final Drawable wallpaperDrawable = wallpaperManager.peekFastDrawable();
 
                             if (wallpaperDrawable != null) {
-                                //default wallpaper to bitmap - fastBlur the bitmap - store bitmap
+                                // Default wallpaper to bitmap - fastBlur the bitmap - store bitmap
                                 new Thread(new Runnable() {
                                     @Override
                                     public void run() {
@@ -305,7 +279,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
             }
         }
 
-        //initialize layout items
+        // Initialize layout items
         pinEdit = (EditText)findViewById(R.id.pinEdit);
         pinEdit.setImeOptions(EditorInfo.IME_ACTION_DONE);
         Button setPin = (Button) findViewById(R.id.setPin);
@@ -319,22 +293,22 @@ public class MainActivity extends Activity implements View.OnClickListener,
         backgroundBlurValue = (TextView)findViewById(R.id.backgroundBlurValue);
         noTags = (TextView)findViewById(R.id.noTags);
 
-        //initialize TagAdapter
+        // Initialize TagAdapter
         adapter = new TagAdapter(this, tags);
 
         registerForContextMenu(listView);
 
-        //set listView adapter to TapAdapter object
+        // Set listView adapter to TapAdapter object
         listView.setAdapter(adapter);
 
-        //set click, check and seekBar listeners
+        // Set click, check and seekBar listeners
         setPin.setOnClickListener(this);
         newTag.setOnClickListener(this);
         refreshWallpaper.setOnClickListener(this);
         toggle.setOnCheckedChangeListener(this);
         seekBar.setOnSeekBarChangeListener(this);
 
-        //set seekBar progress to blur var
+        // Set seekBar progress to blur var
         try {
             seekBar.setProgress(settings.getInt("blur"));
 
@@ -342,17 +316,17 @@ public class MainActivity extends Activity implements View.OnClickListener,
             e.printStackTrace();
         }
 
-        //refresh the listView height
+        // Refresh the listView height
         updateListViewHeight(listView);
 
-        //if no tags, show 'Press + to add Tags' textView
+        // If no tags, show 'Press + to add Tags' textView
         if (tags.length() == 0)
             noTags.setVisibility(View.VISIBLE);
 
         else
             noTags.setVisibility(View.INVISIBLE);
 
-        //scroll up
+        // Scroll up
         scrollView = (ScrollView)findViewById(R.id.scrollView);
 
         scrollView.post(new Runnable() {
@@ -362,7 +336,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
             }
         });
 
-        //if lockscreen enabled, initialize switch, text and start service
+        // If lockscreen enabled, initialize switch, text and start service
         try {
             if (settings.getBoolean("lockscreen")) {
                 onStart = true;
@@ -378,15 +352,15 @@ public class MainActivity extends Activity implements View.OnClickListener,
     }
 
 
-    //function to update listView height
-    //because of it being inside a scrollView
+    // Function to update listView height
+    // Because of it being inside a scrollView
     public static void updateListViewHeight(ListView myListView) {
         ListAdapter myListAdapter = myListView.getAdapter();
 
         if (myListAdapter == null)
             return;
 
-        //get listView height
+        // Get listView height
         int totalHeight = myListView.getPaddingTop() + myListView.getPaddingBottom();
         int adapterCount = myListAdapter.getCount();
 
@@ -402,14 +376,14 @@ public class MainActivity extends Activity implements View.OnClickListener,
             totalHeight += listItem.getMeasuredHeight();
         }
 
-        //change height of listView
+        // Change height of listView
         ViewGroup.LayoutParams paramsList = myListView.getLayoutParams();
         paramsList.height = totalHeight + (myListView.getDividerHeight() * (adapterCount - 1));
         myListView.setLayoutParams(paramsList);
     }
 
 
-    //write content to JSON file
+    // Write content to JSON file
     public void writeToJSON() {
         try {
             BufferedWriter bWrite = new BufferedWriter(new OutputStreamWriter
@@ -425,7 +399,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
     }
 
     public void readFromJSON() {
-        //read root from JSON file
+        // Read root from JSON file
         try {
             BufferedReader bRead = new BufferedReader(new InputStreamReader
                     (openFileInput("settings.json")));
@@ -442,7 +416,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
             e.printStackTrace();
         }
 
-        //read settings, or put JSON object in root if it doesn't exist
+        // Read settings, or put JSON object in root if it doesn't exist
         try {
             settings = root.getJSONObject("settings");
 
@@ -456,13 +430,12 @@ public class MainActivity extends Activity implements View.OnClickListener,
             }
         }
 
-        //read settings, or put if they don't exist
+        // Read settings, or put if they don't exist
         try {
-            lockscreen = settings.getBoolean("lockscreen");
-            pin = settings.getString("pin");
-            pinLocked = settings.getBoolean("pinLocked");
+            Boolean lockscreen = settings.getBoolean("lockscreen");
+            String pin = settings.getString("pin");
+            Boolean pinLocked = settings.getBoolean("pinLocked");
             blur = settings.getInt("blur");
-            tutorial = settings.getBoolean("tutorial");
             tags = settings.getJSONArray("tags");
 
         } catch (JSONException e) {
@@ -478,7 +451,6 @@ public class MainActivity extends Activity implements View.OnClickListener,
                 else
                     settings.put("blur", 0);
 
-                settings.put("tutorial", true);
                 settings.put("tags", tags);
 
             } catch (JSONException e1) {
@@ -488,7 +460,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
     }
 
 
-    //stop NFC tag discovery when 'Cancel' pressed
+    // Stop NFC tag discovery when 'Cancel' pressed
     public void killForegroundDispatch() {
         if (dialogCancelled) {
             try {
@@ -504,26 +476,26 @@ public class MainActivity extends Activity implements View.OnClickListener,
     }
 
 
-    //stop service
+    // Stop service
     public void killService(Context context) {
         stopService(new Intent(context, ScreenLockService.class));
     }
 
 
-    //dialog for NFC tag adding/changing
+    // Dialog for NFC tag adding/changing
     @Override
     protected Dialog onCreateDialog(int id) {
-        //Scan NFC Tag dialog, inflate image
+        // Scan NFC Tag dialog, inflate image
         LayoutInflater factory = LayoutInflater.from(MainActivity.this);
         final View view = factory.inflate(R.layout.scan_tag_image, null);
 
-        //ask for tagTitle (tagName) in dialog
+        // Ask for tagTitle (tagName) in dialog
         final EditText tagTitle = new EditText(this);
         tagTitle.setHint(getResources().getString(R.string.set_tag_name_dialog_hint));
         tagTitle.setSingleLine(true);
         tagTitle.setInputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
 
-        //set tagTitle maxLength
+        // Set tagTitle maxLength
         int maxLength = 50;
         InputFilter[] array = new InputFilter[1];
         array[0] = new InputFilter.LengthFilter(maxLength);
@@ -534,7 +506,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
         l.setOrientation(LinearLayout.VERTICAL);
         l.addView(tagTitle);
 
-        //dialog that shows scan tag image
+        // Dialog that shows scan tag image
         if (id == DIALOG_READ) {
             return new AlertDialog.Builder(this)
                     .setTitle(R.string.scan_tag_dialog_title)
@@ -550,7 +522,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
                     }).create();
         }
 
-        //dialog that asks for tagName and stores it after 'Ok' pressed
+        // Dialog that asks for tagName and stores it after 'Ok' pressed
         else if (id == DIALOG_SET_TAGNAME) {
             tagTitle.requestFocus();
             return new AlertDialog.Builder(this)
@@ -611,7 +583,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
     }
 
 
-    //create context menu for tags listView
+    // Create context menu for tags listView
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
@@ -622,23 +594,23 @@ public class MainActivity extends Activity implements View.OnClickListener,
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {
-        //get pressed item information
+        // Get pressed item information
         final AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
 
-        //if Rename Tag pressed
+        // If Rename Tag pressed
         if (item.getTitle().equals(getResources().getString(R.string.rename_context_menu))) {
-            //create new EdiText and configure
+            // Create new EdiText and configure
             final EditText tagTitle = new EditText(this);
             tagTitle.setSingleLine(true);
             tagTitle.setInputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
 
-            //set tagTitle maxLength
+            // Set tagTitle maxLength
             int maxLength = 50;
             InputFilter[] array = new InputFilter[1];
             array[0] = new InputFilter.LengthFilter(maxLength);
             tagTitle.setFilters(array);
 
-            //get tagName text into EditText
+            // Get tagName text into EditText
             try {
                 assert info != null;
                 tagTitle.setText(tags.getJSONObject(info.position).getString("tagName"));
@@ -652,7 +624,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
             l.setOrientation(LinearLayout.VERTICAL);
             l.addView(tagTitle);
 
-            //show rename dialog
+            // Show rename dialog
             new AlertDialog.Builder(this)
                     .setTitle(R.string.rename_tag_dialog_title)
                     .setView(l)
@@ -660,7 +632,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
 
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            //'Rename' pressed, change tagName and store
+                            // 'Rename' pressed, change tagName and store
                             try {
                                 JSONObject newTagName = tags.getJSONObject(info.position);
                                 newTagName.put("tagName", tagTitle.getText());
@@ -695,9 +667,9 @@ public class MainActivity extends Activity implements View.OnClickListener,
         }
 
 
-        //if Delete Tag pressed
+        // If Delete Tag pressed
         else if (item.getTitle().equals(getResources().getString(R.string.delete_context_menu))) {
-            //construct dialog message
+            // Construct dialog message
             String dialogMessage = "";
 
             assert info != null;
@@ -710,7 +682,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
                 dialogMessage = getResources().getString(R.string.delete_context_menu_dialog2);
             }
 
-            //show delete dialog
+            // Show delete dialog
             new AlertDialog.Builder(this)
                     .setMessage(dialogMessage)
                     .setPositiveButton(R.string.yes_button, new DialogInterface.OnClickListener() {
@@ -718,7 +690,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
                         public void onClick(DialogInterface dialog, int which) {
                             JSONArray newArray = new JSONArray();
 
-                            //copy contents to new array, without the deleted item
+                            // Copy contents to new array, without the deleted item
                             for (int i = 0; i < tags.length(); i++) {
                                 if (i != info.position) {
                                     try {
@@ -730,10 +702,10 @@ public class MainActivity extends Activity implements View.OnClickListener,
                                 }
                             }
 
-                            //equal original array to new array
+                            // Equal original array to new array
                             tags = newArray;
 
-                            //write to file
+                            // Write to file
                             try {
                                 settings.put("tags", tags);
                                 root.put("settings", settings);
@@ -749,7 +721,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
 
                             updateListViewHeight(listView);
 
-                            //if no tags, show 'Press + to add Tags' textView
+                            // If no tags, show 'Press + to add Tags' textView
                             if (tags.length() == 0)
                                 noTags.setVisibility(View.VISIBLE);
 
@@ -765,7 +737,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
                     }).setNegativeButton(R.string.no_button, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    //do nothing, close dialog
+                    // Do nothing, close dialog
                 }
             }).show();
 
@@ -785,10 +757,10 @@ public class MainActivity extends Activity implements View.OnClickListener,
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        //if Rate app pressed, ask user if it's ok to leave app and go to Play Store
-        //if yes, open app in Play Store; if no, close dialog
+        // If Rate app pressed, ask user if it's ok to leave app and go to Play Store
+        // If yes, open app in Play Store; if no, close dialog
         if (item.getItemId() == R.id.rate_app) {
-            final String appPackageName = getPackageName(); //getPackageName() from Context or Activity object
+            final String appPackageName = getPackageName(); // getPackageName() from Context or Activity object
 
             new AlertDialog.Builder(this)
                     .setTitle(R.string.rate_app_dialog_title)
@@ -808,18 +780,9 @@ public class MainActivity extends Activity implements View.OnClickListener,
                     }).setNegativeButton(R.string.no_button, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    //do nothing, close dialog
+                    // Do nothing, close dialog
                 }
             }).show();
-
-            return true;
-        }
-
-        //if Tutorial pressed, launch tutorial activity
-        else if (item.getItemId() == R.id.tutorial) {
-            Intent intent = new Intent(this, TutorialActivity.class);
-
-            startActivity(intent);
 
             return true;
         }
@@ -830,9 +793,9 @@ public class MainActivity extends Activity implements View.OnClickListener,
 
     @Override
     public void onClick(View v) {
-        //if OK(setPin) clicked, ask user if sure; if yes, store PIN; else, go back
+        // If OK(setPin) clicked, ask user if sure; if yes, store PIN; else, go back
         if (v.getId() == R.id.setPin) {
-            //if PIN length between 4 and 6, store PIN and toast successful
+            // If PIN length between 4 and 6, store PIN and toast successful
             if (pinEdit.length() >= 4 && pinEdit.length() <= 6) {
                 new AlertDialog.Builder(this)
                         .setMessage(R.string.set_pin_confirmation)
@@ -860,12 +823,12 @@ public class MainActivity extends Activity implements View.OnClickListener,
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         imm.hideSoftInputFromWindow(pinEdit.getWindowToken(), 0);
-                        //do nothing, close dialog
+                        // Do nothing, close dialog
                     }
                 }).show();
             }
 
-            //toast user that PIN needs to be at least 4 digits long
+            // Toast user that PIN needs to be at least 4 digits long
             else {
                 Toast toast = Toast.makeText(getApplicationContext(),
                         R.string.toast_pin_needs4digits,
@@ -874,8 +837,8 @@ public class MainActivity extends Activity implements View.OnClickListener,
             }
         }
 
-        //if 'Refresh wallpaper' pressed, check if Android 4.2 or above, if yes
-        //store new blur var, if blur bigger than 0 re-blur wallpaper
+        // If 'Refresh wallpaper' pressed, check if Android 4.2 or above, if yes
+        // Store new blur var, if blur bigger than 0 re-blur wallpaper
         else if (v.getId() == R.id.refreshWallpaper) {
             if (Build.VERSION.SDK_INT > 16) {
                 try {
@@ -887,7 +850,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
 
                 writeToJSON();
 
-                //if blur is 0, don't change anything, just toast
+                // If blur is 0, don't change anything, just toast
                 if (blur == 0) {
                     Toast toast = Toast.makeText(getApplicationContext(),
                             R.string.toast_wallpaper_refreshed,
@@ -895,9 +858,9 @@ public class MainActivity extends Activity implements View.OnClickListener,
                     toast.show();
                 }
 
-                //if blur is bigger than 0, get default wallpaper - to bitmap - fastblur bitmap - store
+                // If blur is bigger than 0, get default wallpaper - to bitmap - fastblur bitmap - store
                 else {
-                    //check if TapUnlock folder exists, if not, create directory
+                    // Check if TapUnlock folder exists, if not, create directory
                     File folder = new File(Environment.getExternalStorageDirectory() + "/TapUnlock");
                     boolean folderSuccess = true;
 
@@ -910,7 +873,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
                         final Drawable wallpaperDrawable = wallpaperManager.peekFastDrawable();
 
                         if (wallpaperDrawable != null) {
-                            //display indeterminate progress bar while blurring
+                            // Display indeterminate progress bar while blurring
                             progressBar.setVisibility(View.VISIBLE);
 
                             new Thread(new Runnable() {
@@ -969,7 +932,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
                 }
             }
 
-            //if Android version less than 4.2, display toast cannot blur
+            // If Android version less than 4.2, display toast cannot blur
             else {
                 Toast toast = Toast.makeText(getApplicationContext(),
                         R.string.toast_cannot_blur,
@@ -978,13 +941,11 @@ public class MainActivity extends Activity implements View.OnClickListener,
             }
         }
 
-        //if '+' pressed
+        // If '+' pressed
         else if (v.getId() == R.id.newTag) {
             if (nfcAdapter != null) {
-                //if NFC is on, show scan dialog and enableForegroundDispatch
+                // If NFC is on, show scan dialog and enableForegroundDispatch
                 if (nfcAdapter.isEnabled()) {
-                    MainActivity.this.showDialog(DIALOG_READ);
-
                     nfcAdapter.enableForegroundDispatch(this, pIntent,
                             new IntentFilter[]{new IntentFilter(NfcAdapter.ACTION_TECH_DISCOVERED)},
                             new String[][]{new String[]{"android.nfc.tech.MifareClassic"},
@@ -998,9 +959,12 @@ public class MainActivity extends Activity implements View.OnClickListener,
                                     new String[]{"android.nfc.tech.NdefFormatable"}
                             }
                     );
+
+
+                    MainActivity.this.showDialog(DIALOG_READ);
                 }
 
-                //NFC is off, prompt user to enable it and send him to NFC settings
+                // NFC is off, prompt user to enable it and send him to NFC settings
                 else {
                     new AlertDialog.Builder(this)
                             .setTitle(R.string.nfc_off_dialog_title)
@@ -1014,13 +978,13 @@ public class MainActivity extends Activity implements View.OnClickListener,
                             }).setNegativeButton(R.string.no_button, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            //do nothing, close dialog
+                            // Do nothing, close dialog
                         }
                     }).show();
                 }
             }
 
-            //NFC adapter is null
+            // NFC adapter is null
             else {
                 new AlertDialog.Builder(this)
                         .setTitle(R.string.nfc_off_dialog_title)
@@ -1034,7 +998,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
                         }).setNegativeButton(R.string.no_button, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        //do nothing, close dialog
+                        // Do nothing, close dialog
                     }
                 }).show();
             }
@@ -1042,13 +1006,13 @@ public class MainActivity extends Activity implements View.OnClickListener,
     }
 
 
-    //if enable/disable screen lock switch changed
+    // If enable/disable screen lock switch changed
     public void onCheckedChanged(final CompoundButton buttonView, boolean isChecked) {
         if (isChecked) {
-            //if NFC is on
+            // If NFC is on
             if (nfcAdapter.isEnabled()) {
                 try {
-                    //if no PIN remembered, toast user to enter a PIN
+                    // If no PIN remembered, toast user to enter a PIN
                     if (settings.getString("pin").equals("")) {
                         Toast toast = Toast.makeText(getApplicationContext(),
                                 R.string.toast_lock_set_pin,
@@ -1058,18 +1022,17 @@ public class MainActivity extends Activity implements View.OnClickListener,
                         buttonView.setChecked(false);
                     }
 
-                    //if no NFC Tag remembered, toast user to scan an NFC Tag
+                    // If no NFC Tag remembered, toast user to scan an NFC Tag
                     else if (tags.length() == 0) {
                         Toast toast = Toast.makeText(getApplicationContext(),
                                 R.string.toast_lock_add_tag,
                                 Toast.LENGTH_LONG);
                         toast.show();
 
-                        //set lockscreen false, stop service and store
+                        // Set lockscreen false, stop service and store
                         try {
                             if (settings.getBoolean("lockscreen")) {
                                 settings.put("lockscreen", false);
-                                lockscreen = false;
 
                                 enabled_disabled.setText(R.string.lockscreen_disabled);
                                 enabled_disabled.setTextColor(getResources().getColor(R.color.red));
@@ -1086,12 +1049,11 @@ public class MainActivity extends Activity implements View.OnClickListener,
                         buttonView.setChecked(false);
                     }
 
-                    //if everything ok, set lockscreen true, start service and store
+                    // If everything ok, set lockscreen true, start service and store
                     else {
                         if (!onStart) {
                             try {
                                 settings.put("lockscreen", true);
-                                lockscreen = true;
 
                                 enabled_disabled.setText(R.string.lockscreen_enabled);
                                 enabled_disabled.setTextColor(getResources().getColor(R.color.green));
@@ -1120,7 +1082,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
                 }
             }
 
-            //NFC is off, prompt user to enable it and send him to NFC settings
+            // NFC is off, prompt user to enable it and send him to NFC settings
             else {
                 new AlertDialog.Builder(this)
                         .setTitle(R.string.nfc_off_dialog_title)
@@ -1134,11 +1096,11 @@ public class MainActivity extends Activity implements View.OnClickListener,
                         }).setNegativeButton(R.string.no_button, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        //do nothing, close dialog
+                        //Do nothing, close dialog
                     }
                 }).show();
 
-                //set lockscreen false, stop service and store
+                // Set lockscreen false, stop service and store
                 try {
                     if (settings.getBoolean("lockscreen"))
                         settings.put("lockscreen", false);
@@ -1149,7 +1111,6 @@ public class MainActivity extends Activity implements View.OnClickListener,
 
                 writeToJSON();
 
-                lockscreen = false;
                 enabled_disabled.setText(R.string.lockscreen_disabled);
                 enabled_disabled.setTextColor(getResources().getColor(R.color.red));
 
@@ -1160,7 +1121,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
         }
 
 
-        //if unchecked, set lockscreen false, stop service and store
+        // If unchecked, set lockscreen false, stop service and store
         else {
             try {
                 settings.put("lockscreen", false);
@@ -1171,7 +1132,6 @@ public class MainActivity extends Activity implements View.OnClickListener,
 
             writeToJSON();
 
-            lockscreen = false;
             enabled_disabled.setText(R.string.lockscreen_disabled);
             enabled_disabled.setTextColor(getResources().getColor(R.color.red));
 
@@ -1185,19 +1145,20 @@ public class MainActivity extends Activity implements View.OnClickListener,
     }
 
 
-    //if seekBar progress changed
+    // If seekBar progress changed
     @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-        //calculate progress based on change; for seekBar progress interval (5 instead of 1 in this case)
+        // Calculate progress based on change; for seekBar progress interval
+        // (5 instead of 1 in this case)
         progress = ((int)Math.round(progress / SEEK_BAR_INTERVAL)) * SEEK_BAR_INTERVAL;
 
-        //set progres
+        // Set progress
         this.seekBar.setProgress(progress);
 
-        //equal blur var to calculated progress
+        // Equal blur var to calculated progress
         blur = progress;
 
-        //change blur level text to progress
+        // Change blur level text to progress
         backgroundBlurValue.setText(String.valueOf(progress));
     }
 
@@ -1208,22 +1169,20 @@ public class MainActivity extends Activity implements View.OnClickListener,
     public void onStopTrackingTouch(SeekBar seekBar) {}
 
 
-    //if NFC Tag discovered, read ID, ask for tagName and store into file
+    // If NFC Tag discovered, read ID, ask for tagName and store into file
     @Override
     protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-
         String action = intent.getAction();
 
         if (NfcAdapter.ACTION_TECH_DISCOVERED.equals(action)) {
             Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
 
-            //get tag ID and turn into String
+            // Get tag ID and turn into String
             byte[] tagIDbytes = tag.getId();
             tagID = bytesToHex(tagIDbytes);
 
             if (!tagID.equals("")) {
-                //dismiss the 'Scan NFC Tag' dialog and show the 'Set tag name' dialog
+                // Dismiss the 'Scan NFC Tag' dialog and show the 'Set tag name' dialog
                 dismissDialog(DIALOG_READ);
 
                 imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
@@ -1234,10 +1193,10 @@ public class MainActivity extends Activity implements View.OnClickListener,
     }
 
 
-    //char array for bytes to hex string method
+    // Char array for bytes to hex string method
     final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
 
-    //bytes to hex string method
+    // Bytes to hex string method
     public static String bytesToHex(byte[] bytes) {
         char[] hexChars = new char[bytes.length * 2];
 
@@ -1251,12 +1210,24 @@ public class MainActivity extends Activity implements View.OnClickListener,
     }
 
 
-    //disable NFC foreground dispatch when activity paused
+    // Disable NFC foreground dispatch when activity paused
     @Override
     protected void onPause() {
         super.onPause();
 
         if (nfcAdapter != null)
             nfcAdapter.disableForegroundDispatch(this);
+    }
+
+    // If activity resumed, refresh action bar title design
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (actionBarTitleView != null) {
+            actionBarTitleView.setTypeface(lobsterTwo);
+            actionBarTitleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 28f);
+            actionBarTitleView.setTextColor(getResources().getColor(R.color.blue));
+        }
     }
 }

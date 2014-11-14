@@ -9,9 +9,8 @@
     <color name="green">#31B639</color>
     <color name="light_green">#33E46D</color>
     <!-- -->
-    <color name="tutorial_white">#F9F9F9</color>
-    <color name="grey_background">#E6E6E6</color>
-    <color name="frame_background">#F5F5F5</color>
+    <color name="grey_background">#ffe3e3e3</color>
+    <color name="frame_background">#fff7f7f7</color>
     <!-- -->
     <color name="white">#FFFFFF</color>
     <color name="white_95">#F2FFFFFF</color>
@@ -51,5 +50,6 @@
     <color name="black_25">#40000000</color>
     <color name="black_20">#33000000</color>
     <color name="black_15">#26000000</color>
+    <color name="black_10">#19000000</color>
 
 </resources>

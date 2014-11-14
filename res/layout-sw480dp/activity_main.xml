@@ -21,17 +21,21 @@
             android:layout_marginLeft="10dp"
             android:layout_marginTop="10dp"
             android:layout_marginRight="10dp"
+            android:layout_alignParentStart="true"
             android:layout_alignParentLeft="true"
+            android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"
             android:layout_alignParentTop="true" />
 
         <View
             android:layout_width="wrap_content"
             android:layout_height="2dp"
-            android:background="@color/black_15"
+            android:background="@color/black_10"
             android:id="@+id/shadow1"
             android:layout_below="@+id/frame1"
+            android:layout_alignStart="@+id/frame1"
             android:layout_alignLeft="@+id/frame1"
+            android:layout_alignEnd="@+id/frame1"
             android:layout_alignRight="@+id/frame1" />
 
         <TextView
@@ -42,6 +46,7 @@
             android:id="@+id/pinTitle"
             android:textStyle="bold"
             android:layout_alignBottom="@+id/pinEdit"
+            android:layout_toStartOf="@+id/pinEdit"
             android:layout_toLeftOf="@+id/pinEdit"
             android:textColor="@color/blue" />
 
@@ -59,7 +64,9 @@
             android:layout_alignTop="@+id/frame1"
             android:layout_centerHorizontal="true"
             android:textColor="@color/blue"
+            android:layout_marginStart="5dp"
             android:layout_marginLeft="5dp"
+            android:layout_marginEnd="10dp"
             android:layout_marginRight="10dp"
             android:layout_alignBottom="@+id/frame1"
             android:layout_marginBottom="22dp" />
@@ -70,6 +77,7 @@
             android:layout_height="wrap_content"
             android:text="@string/ok_button"
             android:id="@+id/setPin"
+            android:layout_toEndOf="@+id/pinEdit"
             android:layout_toRightOf="@+id/pinEdit"
             android:background="@drawable/ic_ok_reload_selector"
             android:textColor="@color/white"
@@ -88,16 +96,20 @@
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
             android:layout_marginTop="20dp"
+            android:layout_alignParentStart="true"
             android:layout_alignParentLeft="true"
+            android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true" />
 
         <View
             android:layout_width="wrap_content"
             android:layout_height="2dp"
-            android:background="@color/black_15"
+            android:background="@color/black_10"
             android:id="@+id/shadow2"
             android:layout_below="@+id/frame2"
+            android:layout_alignStart="@+id/frame2"
             android:layout_alignLeft="@+id/frame2"
+            android:layout_alignEnd="@+id/frame2"
             android:layout_alignRight="@+id/frame2" />
 
         <View
@@ -105,7 +117,9 @@
             android:layout_height="40dp"
             android:background="@color/blue"
             android:id="@+id/lockScreenSeparator"
+            android:layout_alignStart="@+id/frame2"
             android:layout_alignLeft="@+id/frame2"
+            android:layout_alignEnd="@+id/frame2"
             android:layout_alignRight="@+id/frame2"
             android:layout_alignTop="@+id/frame2" />
 
@@ -128,7 +142,9 @@
             android:text="@string/lockscreen_enabled_disabled"
             android:id="@+id/lockscreen_enabled_disabled"
             android:layout_below="@+id/lockScreenSeparator"
+            android:layout_alignStart="@+id/frame2"
             android:layout_alignLeft="@+id/frame2"
+            android:layout_marginStart="20dp"
             android:layout_marginLeft="20dp"
             android:layout_marginTop="18dp"
             android:textSize="20sp" />
@@ -141,7 +157,9 @@
             android:id="@+id/enabled_disabled"
             android:textColor="@color/red"
             android:layout_alignTop="@+id/lockscreen_enabled_disabled"
+            android:layout_toEndOf="@+id/lockscreen_enabled_disabled"
             android:layout_toRightOf="@+id/lockscreen_enabled_disabled"
+            android:layout_marginStart="7dp"
             android:layout_marginLeft="7dp"
             android:textSize="20sp" />
 
@@ -150,8 +168,10 @@
             android:layout_height="wrap_content"
             android:id="@+id/toggle"
             android:layout_below="@+id/lockScreenSeparator"
+            android:layout_alignEnd="@+id/frame2"
             android:layout_alignRight="@+id/frame2"
             android:layout_marginTop="15dp"
+            android:layout_marginEnd="20dp"
             android:layout_marginRight="20dp" />
 
         <View
@@ -163,16 +183,20 @@
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
             android:layout_marginTop="20dp"
+            android:layout_alignParentStart="true"
             android:layout_alignParentLeft="true"
+            android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true" />
 
         <View
             android:layout_width="wrap_content"
             android:layout_height="2dp"
-            android:background="@color/black_15"
+            android:background="@color/black_10"
             android:id="@+id/shadow3"
             android:layout_below="@+id/frame3"
+            android:layout_alignStart="@+id/frame3"
             android:layout_alignLeft="@+id/frame3"
+            android:layout_alignEnd="@+id/frame3"
             android:layout_alignRight="@+id/frame3" />
 
         <View
@@ -180,7 +204,9 @@
             android:layout_height="40dp"
             android:background="@color/blue"
             android:id="@+id/backgroundBlurSeparator"
+            android:layout_alignStart="@+id/frame3"
             android:layout_alignLeft="@+id/frame3"
+            android:layout_alignEnd="@+id/frame3"
             android:layout_alignRight="@+id/frame3"
             android:layout_alignTop="@+id/frame3" />
 
@@ -206,7 +232,8 @@
             android:layout_alignLeft="@+id/pinTitle"
             android:layout_alignStart="@+id/pinTitle"
             android:layout_marginTop="12dp"
-            android:layout_marginLeft="25dp" />
+            android:layout_marginStart="25dp"
+            android:layout_marginLeft="30dp" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -215,19 +242,23 @@
             android:text="15"
             android:id="@+id/backgroundBlurValue"
             android:layout_alignTop="@+id/backgroundBlurMessage"
+            android:layout_toEndOf="@+id/backgroundBlurMessage"
             android:layout_toRightOf="@+id/backgroundBlurMessage"
+            android:layout_marginStart="5dp"
             android:layout_marginLeft="5dp" />
 
         <SeekBar
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/seekBar"
+            android:layout_alignStart="@+id/frame3"
             android:layout_alignLeft="@+id/frame3"
             android:layout_marginLeft="5dp"
             android:layout_marginTop="10dp"
             android:max="25"
             android:progress="15"
             android:layout_below="@+id/backgroundBlurMessage"
+            android:layout_toStartOf="@+id/refreshWallpaper"
             android:layout_toLeftOf="@+id/refreshWallpaper"
             android:layout_marginRight="5dp" />
 
@@ -241,7 +272,9 @@
             android:textColor="@color/white"
             android:background="@drawable/ic_ok_reload_selector"
             android:layout_alignTop="@+id/backgroundBlurMessage"
+            android:layout_alignEnd="@+id/frame3"
             android:layout_alignRight="@+id/frame3"
+            android:layout_marginEnd="15dp"
             android:layout_marginRight="15dp" />
 
         <ProgressBar
@@ -250,7 +283,9 @@
             android:layout_height="wrap_content"
             android:id="@+id/progressBar"
             android:layout_below="@+id/seekBar"
+            android:layout_alignStart="@+id/frame3"
             android:layout_alignLeft="@+id/frame3"
+            android:layout_alignEnd="@+id/frame3"
             android:layout_alignRight="@+id/frame3"
             android:indeterminate="true"
             android:visibility="invisible" />
@@ -263,7 +298,9 @@
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
             android:layout_marginTop="20dp"
+            android:layout_alignParentStart="true"
             android:layout_alignParentLeft="true"
+            android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"
             android:layout_below="@+id/frame3" />
 
@@ -272,7 +309,9 @@
             android:layout_height="50dp"
             android:background="@color/blue"
             android:id="@+id/NFCTagsSeparator"
+            android:layout_alignStart="@+id/frame4"
             android:layout_alignLeft="@+id/frame4"
+            android:layout_alignEnd="@+id/frame4"
             android:layout_alignRight="@+id/frame4"
             android:layout_alignTop="@+id/frame4" />
 
@@ -292,12 +331,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/newTag"
+            android:layout_alignEnd="@+id/frame4"
             android:layout_alignRight="@+id/frame4"
             android:src="@drawable/ic_content_new"
             android:background="@drawable/ic_plus_selector"
             android:layout_alignTop="@+id/frame4"
             android:contentDescription="@string/new_tag_description"
             android:layout_marginTop="3dp"
+            android:layout_marginEnd="3dp"
             android:layout_marginRight="3dp"
             android:layout_alignBottom="@+id/NFCTagsSeparator"
             android:layout_marginBottom="3dp" />
@@ -309,10 +350,14 @@
             android:layout_below="@+id/NFCTagsSeparator"
             android:layout_marginRight="10dp"
             android:drawSelectorOnTop="true"
+            android:layout_alignParentStart="true"
             android:layout_alignParentLeft="true"
+            android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"
             android:layout_marginTop="3dp"
+            android:layout_alignStart="@+id/frame4"
             android:layout_alignLeft="@+id/frame4"
+            android:layout_alignEnd="@+id/frame4"
             android:layout_alignRight="@+id/frame4"
             android:layout_marginLeft="10dp"
             android:dividerHeight="3dp"

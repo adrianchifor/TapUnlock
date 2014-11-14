@@ -4,10 +4,13 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.PendingIntent;
 import android.app.WallpaperManager;
+import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.os.Build;
+import android.provider.MediaStore;
+import android.view.GestureDetector;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.content.Context;
@@ -38,6 +41,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
@@ -62,31 +67,38 @@ import java.util.List;
 import java.util.Locale;
 
 
-public class LockActivity extends Activity implements View.OnClickListener, View.OnTouchListener {
+public class LockActivity extends Activity implements View.OnClickListener, View.OnTouchListener,
+        GestureDetector.OnGestureListener {
 
 
-    //brightness int flags
+    // Brightness int flags
     private static final int LOW_BRIGHTNESS = 0;
     private static final int MEDIUM_BRIGHTNESS = 80;
     private static final int HIGH_BRIGHTNESS = 255;
 
-    private static final int SCREEN_TIMEOUT = 15000; //screen timeout flag
-    private static final int TIMEOUT_DELAY = 3000; //for getting system screen timeout
+    private static final int SCREEN_TIMEOUT = 15000; // Screen timeout flag
+    private static final int TIMEOUT_DELAY = 3000; // For getting system screen timeout
 
-    private static final int PIN_LOCKED_RUNNABLE_DELAY = 30000; //unlock PIN keypad after x milliseconds
+    private static final int PIN_LOCKED_RUNNABLE_DELAY = 30000; // Unlock PIN keypad after x milliseconds
 
-    private PendingIntent pIntent; //pending intent for NFC Tag discovery
+    // Alarm check flags
+    private static final String ALARM_ALERT_ACTION = "com.android.deskclock.ALARM_ALERT";
+    private static final String ALARM_SNOOZE_ACTION = "com.android.deskclock.ALARM_SNOOZE";
+    private static final String ALARM_DISMISS_ACTION = "com.android.deskclock.ALARM_DISMISS";
+    private static final String ALARM_DONE_ACTION = "com.android.deskclock.ALARM_DONE";
 
-    private int flags; //window flags
+    private PendingIntent pIntent; // Pending intent for NFC Tag discovery
 
-    //surfaceHolder for flashlight
+    private int flags; // Window flags
+
+    // SurfaceHolder for flashlight
     private SurfaceHolder surfaceHolder;
 
     private WindowManager wm;
     private ActivityManager activityManager;
     private PackageManager packageManager;
 
-    //components for home launcher activity
+    // Components for home launcher activity
     private ComponentName cnHome;
     private int componentDisabled, componentEnabled;
 
@@ -99,47 +111,57 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     private Camera cam;
     private Parameters camParam;
 
-    private Boolean vibratorAvailable = false; //true if device vibrator exists, false otherwise
-    private Boolean flashlightAvailable = false; //true if FEATURE_FLASH exists, false otherwise
-    private Boolean isFlashOn = false; //true if flash was turned on, false otherwise
-    private ContentResolver cResolver; //content resolver for system settings get and put
-    private int brightnessMode = -1; //0 (LOW), 1 (MEDIUM), 2(HIGH) and 3(AUTO)
-    private int systemScreenTimeout = -1; //for getting default system screen timeout
-    private int ringerMode; //1 (NORMAL), 2 (VIBRATE) and 3 (SILENT)
+    private Boolean vibratorAvailable = false; // True if device vibrator exists, false otherwise
+    private Boolean flashlightAvailable = false; // True if FEATURE_FLASH exists, false otherwise
+    private Boolean isFlashOn = false; // True if flash was turned on, false otherwise
+    private ContentResolver cResolver; // Content resolver for system settings get and put
+    private int brightnessMode = -1; // 0 (LOW), 1 (MEDIUM), 2(HIGH) and 3(AUTO)
+    private int systemScreenTimeout = -1; // For getting default system screen timeout
+    private int ringerMode; // 1 (NORMAL), 2 (VIBRATE) and 3 (SILENT)
 
     private int taskId;
 
-    private String pinEntered = ""; //the PIN the user inputs
-    private int pinAttempts = 5; //the number of attempts before PIN locked for 30s
+    private String pinEntered = ""; // The PIN the user inputs
+    private int pinAttempts = 5; // The number of attempts before PIN locked for 30s
 
-    //for updating time and date values
+    // For updating time and date values
     private Calendar calendar;
 
-    //layout items
+    // Layout items
     private View disableStatusBar;
     private TextView time, date, battery, unlockText, pinInput;
-    private ImageButton wifi;
-    private ImageButton data;
-    private ImageButton flashlight;
-    private ImageButton brightness;
-    private ImageButton sound;
+    private ImageButton wifi, data, flashlight, brightness, sound, phone, camera, up, down;
+    private View toolboxFrame;
 
-    //max number of times the launcher pick dialog toast should show
+    // Phone and Camera open booleans
+    private Boolean phoneToOpen = false;
+    private Boolean cameraToOpen = false;
+
+    // View animations
+    protected Animation slideUp, slideDown, fadeIn, fadeOut;
+
+    // Max number of times the launcher pick dialog toast should show
     private int launcherPickToast = 2;
-    private Boolean isPhoneCalling = false; //true if phone state listener is ringing/offhook
+    private Boolean isPhoneCalling = false; // True if phone state listener is ringing/offhook
+    private Boolean isAlarmRinging = false; // True if alarm is ringing
 
-    //contents of JSON file
+    // For gesture detection
+    private static final int SWIPE_MIN_DIST = 180;
+    private GestureDetector gestureDetector;
+    private Boolean swipedUp = false;
+    private Boolean swipedDown = true;
+
+    // Contents of JSON file
     private JSONObject root;
     private JSONObject settings;
     private JSONArray tags;
-    private Boolean lockscreen;
     private String pin;
     private Boolean pinLocked;
     private int blur;
 
     private Handler mHandler = new Handler();
 
-    //vibrate, set pinLocked to false, store and reset pinEntered
+    // Vibrate, set pinLocked to false, store and reset pinEntered
     protected Runnable pinLockedRunnable = new Runnable() {
         @Override
         public void run() {
@@ -148,7 +170,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
 
             if (nfcAdapter != null) {
                 if (nfcAdapter.isEnabled())
-                    unlockText.setText(getResources().getString(R.string.scan_to_unlock));
+                    unlockText.setText("");
 
                 else
                     unlockText.setText(getResources().getString(R.string.scan_to_unlock_nfc_off));
@@ -173,7 +195,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     };
 
 
-    //broadcast receiver for time, date and battery changed
+    // Broadcast receiver for time, date and battery changed
     private BroadcastReceiver mChangeReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -193,39 +215,43 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     };
 
 
+    // Alarm broadcast receiver
+    private BroadcastReceiver mAlarmReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+
+            // If alarm is ringing, move task to back
+            if (action.equals(ALARM_ALERT_ACTION)) {
+                isAlarmRinging = true;
+                moveTaskToBack(true);
+            }
+
+            // If alarm dismissed or snoozed, move task to front and set 'isAlarmRinging' to false
+            else if (action.equals(ALARM_DISMISS_ACTION) || action.equals(ALARM_DONE_ACTION) ||
+                     action.equals(ALARM_SNOOZE_ACTION)) {
+                if (isAlarmRinging) {
+                    activityManager.moveTaskToFront(taskId, 0);
+                    isAlarmRinging = false;
+                }
+            }
+        }
+    };
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        //get screen density and calculate disableStatusBar view height
+        // Get screen density and calculate disableStatusBar view height
         float screenDensity = getResources().getDisplayMetrics().density;
 
         float disableStatusBar_height = screenDensity * 70;
 
         readFromJSON();
 
-        try {
-            //if lockscreen false, stop service, pinLocked false, store and finish
-            if (!settings.getBoolean("lockscreen")) {
-                stopService(new Intent(this, ScreenLockService.class));
-
-                pinLocked = false;
-                settings.put("pinLocked", false);
-
-                writeToJSON();
-
-                finish();
-                overridePendingTransition(0, 0);
-                return;
-            }
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-
-        //activity window flags
+        // Activity window flags
         flags = WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD |
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL |
                 WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
@@ -233,7 +259,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
 
         disableStatusBar = new View(this);
 
-        //disableStatusBar view parameters
+        // DisableStatusBar view parameters
         WindowManager.LayoutParams handleParamsTop = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.MATCH_PARENT,
                 (int) disableStatusBar_height,
@@ -245,21 +271,21 @@ public class LockActivity extends Activity implements View.OnClickListener, View
 
         handleParamsTop.gravity = Gravity.TOP | Gravity.CENTER;
 
-        //initialize package manager and components
+        // Initialize package manager and components
         packageManager = getPackageManager();
         componentEnabled = PackageManager.COMPONENT_ENABLED_STATE_ENABLED;
         componentDisabled = PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
 
         cnHome = new ComponentName(this, "com.moonpi.tapunlock.LockHome");
 
-        //enable home launcher activity component
+        // Enable home launcher activity component
         packageManager.setComponentEnabledSetting(cnHome, componentEnabled, PackageManager.DONT_KILL_APP);
 
-        //get NFC service and adapter
+        // Get NFC service and adapter
         NfcManager nfcManager = (NfcManager) this.getSystemService(Context.NFC_SERVICE);
         nfcAdapter = nfcManager.getDefaultAdapter();
 
-        //if Android version less than 4.4, createPendingResult for NFC tag discovery
+        // If Android version less than 4.4, createPendingResult for NFC tag discovery
         if (Build.VERSION.SDK_INT < 19) {
             pIntent = PendingIntent.getActivity(
                     this, 0, new Intent(this, getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
@@ -267,39 +293,30 @@ public class LockActivity extends Activity implements View.OnClickListener, View
 
         taskId = getTaskId();
 
-        //get window manager service, add the window flags and the disableStatusBar view
+        // Get window manager service, add the window flags and the disableStatusBar view
         wm = (WindowManager) getApplicationContext().getSystemService(WINDOW_SERVICE);
         this.getWindow().addFlags(flags);
         wm.addView(disableStatusBar, handleParamsTop);
 
-        //if Android version 4.4 or bigger, add translucent status bar flag
+        // If Android version 4.4 or bigger, add translucent status bar flag
         if (Build.VERSION.SDK_INT >= 19) {
             this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         }
 
-        //to listen for calls, so user can accept or deny a call
+        // To listen for calls, so user can accept or deny a call
         StateListener phoneStateListener = new StateListener();
         TelephonyManager telephonyManager = (TelephonyManager) this.getSystemService(TELEPHONY_SERVICE);
         telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
 
         activityManager = (ActivityManager) this.getSystemService(ACTIVITY_SERVICE);
         vibrator = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
-        am = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
-        wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
-        connManager = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
 
-        //check if system has flashlight feature and store true/false in var
-        flashlightAvailable = getApplicationContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
-
-        //check if device has vibrator and store true/false in var
+        // Check if device has vibrator and store true/false in var
         vibratorAvailable = vibrator.hasVibrator();
-
-        //get mobile data connection, to check whether connected or not
-        isMobileDataOn = connManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
 
         setContentView(R.layout.activity_lock);
 
-        //when disableStatusBar view touched, consume touch
+        // When disableStatusBar view touched, consume touch
         disableStatusBar.setOnTouchListener(new OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -307,8 +324,8 @@ public class LockActivity extends Activity implements View.OnClickListener, View
             }
         });
 
-        //if Android 4.1 or lower or blur is 0 or blurred wallpaper doesn't exist
-        //get default wallpaper and set as background drawable
+        // If Android 4.1 or lower or blur is 0 or blurred wallpaper doesn't exist
+        // Get default wallpaper and set as background drawable
         if (Build.VERSION.SDK_INT < 17 || blur == 0 || !ImageUtils.doesBlurredWallpaperExist()) {
             WallpaperManager wallpaperManager = WallpaperManager.getInstance(this);
             Drawable wallpaperDrawable = wallpaperManager.peekFastDrawable();
@@ -317,7 +334,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
                 getWindow().setBackgroundDrawable(wallpaperDrawable);
         }
 
-        //otherwise, retrieve blurred wallpaper and set as background drawable
+        // Otherwise, retrieve blurred wallpaper and set as background drawable
         else {
             Drawable blurredWallpaper = ImageUtils.retrieveWallpaperDrawable();
 
@@ -333,26 +350,38 @@ public class LockActivity extends Activity implements View.OnClickListener, View
             }
         }
 
-        //initialize surface view and holder for camera (flashlight) preview
-        SurfaceView surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
-        surfaceHolder = surfaceView.getHolder();
+        am = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
+        wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
+        connManager = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        // Get mobile data connection, to check whether connected or not
+        isMobileDataOn = connManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
 
         RelativeLayout lockRelativeLayout = (RelativeLayout) findViewById(R.id.lockRelativeLayout);
 
-        //if Android version 4.4 or bigger, set layout fits system windows to true
+        // If Android version 4.4 or bigger, set layout fits system windows to true
         if (Build.VERSION.SDK_INT >= 19) {
             lockRelativeLayout.setFitsSystemWindows(true);
         }
 
+        // Check if system has flashlight feature and store true/false in var
+        flashlightAvailable = getApplicationContext().getPackageManager().hasSystemFeature(
+                PackageManager.FEATURE_CAMERA_FLASH);
+
+        // Initialize surface view and holder for camera (flashlight) preview
+        SurfaceView surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
+        surfaceHolder = surfaceView.getHolder();
+
         cResolver = getContentResolver();
 
-        //get current system screen timeout and store in int
-        systemScreenTimeout = Settings.System.getInt(cResolver, Settings.System.SCREEN_OFF_TIMEOUT, TIMEOUT_DELAY);
+        // Get current system screen timeout and store in int
+        systemScreenTimeout = Settings.System.getInt(cResolver, Settings.System.SCREEN_OFF_TIMEOUT,
+                TIMEOUT_DELAY);
 
-        //set lockscreen screen timeout to 15s
+        // Set lockscreen screen timeout to 15s
         Settings.System.putInt(cResolver, Settings.System.SCREEN_OFF_TIMEOUT, SCREEN_TIMEOUT);
 
-        //initialize layout items
+        // Initialize layout items
         time = (TextView)findViewById(R.id.time);
         date = (TextView)findViewById(R.id.date);
         battery = (TextView)findViewById(R.id.battery);
@@ -368,14 +397,19 @@ public class LockActivity extends Activity implements View.OnClickListener, View
         ImageButton ic_7 = (ImageButton) findViewById(R.id.ic_7);
         ImageButton ic_8 = (ImageButton) findViewById(R.id.ic_8);
         ImageButton ic_9 = (ImageButton) findViewById(R.id.ic_9);
+        toolboxFrame = findViewById(R.id.toolboxFrame);
         wifi = (ImageButton)findViewById(R.id.wifi);
         data = (ImageButton)findViewById(R.id.data);
         flashlight = (ImageButton)findViewById(R.id.flashlight);
         brightness = (ImageButton)findViewById(R.id.brightness);
         sound = (ImageButton)findViewById(R.id.sound);
         Button delete = (Button) findViewById(R.id.delete);
+        phone = (ImageButton)findViewById(R.id.phone);
+        camera = (ImageButton)findViewById(R.id.camera);
+        up = (ImageButton)findViewById(R.id.up);
+        down = (ImageButton)findViewById(R.id.down);
 
-        //set onClick listeners
+        // Set onClick listeners
         ic_0.setOnClickListener(this);
         ic_1.setOnClickListener(this);
         ic_2.setOnClickListener(this);
@@ -392,35 +426,82 @@ public class LockActivity extends Activity implements View.OnClickListener, View
         brightness.setOnClickListener(this);
         sound.setOnClickListener(this);
         delete.setOnClickListener(this);
+        phone.setOnClickListener(this);
+        camera.setOnClickListener(this);
+        up.setOnClickListener(this);
+        down.setOnClickListener(this);
 
-        //initialize calendar and time/date/battery views
+        gestureDetector = new GestureDetector(this, this);
+
+        up.setOnTouchListener(new OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (swipedUp)
+                    return false;
+
+                swipedUp = true;
+                swipedDown = false;
+                swipeUp();
+
+                return true;
+            }
+        });
+
+        down.setOnTouchListener(new OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (swipedDown)
+                    return false;
+
+                swipedDown = true;
+                swipedUp = false;
+                swipeDown();
+
+                return true;
+            }
+        });
+
+        // Initialize animations
+        slideDown = AnimationUtils.loadAnimation(this, R.anim.slide_down);
+        slideUp = AnimationUtils.loadAnimation(this, R.anim.slide_up);
+        fadeOut = AnimationUtils.loadAnimation(this, R.anim.fade_out);
+        fadeIn = AnimationUtils.loadAnimation(this, R.anim.fade_in);
+
+        // Initialize calendar and time/date/battery views
         calendar = Calendar.getInstance();
 
         updateTime();
         updateDate();
         updateBattery(getBatteryLevel());
 
-        //check system screen brightness/mode and set brightnessMode accordingly
+        // Check system screen brightness/mode and set brightnessMode accordingly
         try {
-            if (Settings.System.getInt(cResolver, Settings.System.SCREEN_BRIGHTNESS_MODE) == Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC) {
+            if (Settings.System.getInt(cResolver, Settings.System.SCREEN_BRIGHTNESS_MODE) ==
+                    Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC) {
                 brightnessMode = 3;
                 brightness.setImageDrawable(getResources().getDrawable(R.drawable.ic_bright_auto));
             }
 
             else {
-                if (Settings.System.getInt(cResolver, Settings.System.SCREEN_BRIGHTNESS) >= LOW_BRIGHTNESS &&
-                        Settings.System.getInt(cResolver, Settings.System.SCREEN_BRIGHTNESS) < MEDIUM_BRIGHTNESS) {
+                if (Settings.System.getInt(cResolver, Settings.System.SCREEN_BRIGHTNESS) >=
+                        LOW_BRIGHTNESS && Settings.System.getInt(cResolver,
+                        Settings.System.SCREEN_BRIGHTNESS) < MEDIUM_BRIGHTNESS) {
+
                     brightnessMode = 0;
                     brightness.setImageDrawable(getResources().getDrawable(R.drawable.ic_bright_0));
                 }
 
-                else if (Settings.System.getInt(cResolver, Settings.System.SCREEN_BRIGHTNESS) >= MEDIUM_BRIGHTNESS &&
-                        Settings.System.getInt(cResolver, Settings.System.SCREEN_BRIGHTNESS) < HIGH_BRIGHTNESS) {
+                else if (Settings.System.getInt(cResolver, Settings.System.SCREEN_BRIGHTNESS) >=
+                        MEDIUM_BRIGHTNESS && Settings.System.getInt(cResolver,
+                        Settings.System.SCREEN_BRIGHTNESS) < HIGH_BRIGHTNESS) {
+
                     brightnessMode = 1;
                     brightness.setImageDrawable(getResources().getDrawable(R.drawable.ic_bright_1));
                 }
 
-                if (Settings.System.getInt(cResolver, Settings.System.SCREEN_BRIGHTNESS) == HIGH_BRIGHTNESS) {
+                if (Settings.System.getInt(cResolver, Settings.System.SCREEN_BRIGHTNESS)
+                        == HIGH_BRIGHTNESS) {
+
                     brightnessMode = 2;
                     brightness.setImageDrawable(getResources().getDrawable(R.drawable.ic_bright_2));
                 }
@@ -430,22 +511,28 @@ public class LockActivity extends Activity implements View.OnClickListener, View
             e.printStackTrace();
         }
 
-        //create an intent filter with time/date/battery changes and register receiver
+        // Create intent filter for alarm states and register alarm receiver
+        IntentFilter alarmFilter = new IntentFilter(ALARM_ALERT_ACTION);
+        alarmFilter.addAction(ALARM_DISMISS_ACTION);
+        alarmFilter.addAction(ALARM_SNOOZE_ACTION);
+        alarmFilter.addAction(ALARM_DONE_ACTION);
+        this.registerReceiver(mAlarmReceiver, alarmFilter);
+
+        // Create an intent filter with time/date/battery changes and register receiver
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(Intent.ACTION_TIME_TICK);
         intentFilter.addAction(Intent.ACTION_BATTERY_CHANGED);
         intentFilter.addAction(Intent.ACTION_DATE_CHANGED);
-
         this.registerReceiver(mChangeReceiver, intentFilter);
 
-        //if wifi enabled or not, set drawable accordingly
+        // If wifi enabled or not, set drawable accordingly
         if (wifiManager.isWifiEnabled())
             wifi.setImageDrawable(getResources().getDrawable(R.drawable.ic_wifi_on));
 
         else
             wifi.setImageDrawable(getResources().getDrawable(R.drawable.ic_wifi_off));
 
-        //if mobile data not null and enabled or not, set drawable accordingly
+        // If mobile data not null and enabled or not, set drawable accordingly
         if (isMobileDataOn != null) {
             if (isMobileDataOn.isConnected())
                 data.setImageDrawable(getResources().getDrawable(R.drawable.ic_data_on));
@@ -454,7 +541,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
                 data.setImageDrawable(getResources().getDrawable(R.drawable.ic_data_off));
         }
 
-        //check ringer mode and set drawable/ringerMode var accordingly
+        // Check ringer mode and set drawable/ringerMode var accordingly
         switch (am.getRingerMode()) {
             case AudioManager.RINGER_MODE_NORMAL:
                 sound.setImageDrawable(getResources().getDrawable(R.drawable.ic_speaker));
@@ -472,8 +559,8 @@ public class LockActivity extends Activity implements View.OnClickListener, View
                 break;
         }
 
-        //check default launcher, if current package isn't the default one
-        //open the 'Select home app' dialog for user to pick default home launcher
+        // Check default launcher, if current package isn't the default one
+        // Open the 'Select home app' dialog for user to pick default home launcher
         if (!isMyLauncherDefault()) {
             packageManager.clearPackagePreferredActivities(getPackageName());
 
@@ -494,7 +581,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     }
 
 
-    //write content to JSON file
+    // Write content to JSON file
     public void writeToJSON() {
         try {
             BufferedWriter bWrite = new BufferedWriter(new OutputStreamWriter
@@ -510,7 +597,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     }
 
     public void readFromJSON() {
-        //read from JSON file
+        // Read from JSON file
         try {
             BufferedReader bRead = new BufferedReader(new InputStreamReader
                     (openFileInput("settings.json")));
@@ -524,7 +611,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
             e.printStackTrace();
         }
 
-        //read settings object from root
+        // Read settings object from root
         try {
             settings = root.getJSONObject("settings");
 
@@ -532,9 +619,8 @@ public class LockActivity extends Activity implements View.OnClickListener, View
             e.printStackTrace();
         }
 
-        //read required items from settings object
+        // Read required items from settings object
         try {
-            lockscreen = settings.getBoolean("lockscreen");
             pin = settings.getString("pin");
             pinLocked = settings.getBoolean("pinLocked");
             blur = settings.getInt("blur");
@@ -546,7 +632,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     }
 
 
-    //method to update time view
+    // Method to update time view
     public void updateTime() {
         calendar = Calendar.getInstance();
         String hourDay = String.valueOf(calendar.get(Calendar.HOUR_OF_DAY));
@@ -561,22 +647,25 @@ public class LockActivity extends Activity implements View.OnClickListener, View
         time.setText(timeFinal);
     }
 
-    //method to update date view
+    // Method to update date view
     public void updateDate() {
         calendar = Calendar.getInstance();
-        String weekDay = String.valueOf(calendar.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.US));
-        String month = " " + String.valueOf(calendar.getDisplayName(Calendar.MONTH, Calendar.SHORT, Locale.US));
+        String weekDay = String.valueOf(calendar.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT,
+                Locale.US));
+        String month = " " + String.valueOf(calendar.getDisplayName(Calendar.MONTH, Calendar.SHORT,
+                Locale.US));
         String dateDay = " " + String.valueOf(calendar.get(Calendar.DATE));
         String dateFinal = weekDay + dateDay + month;
 
         date.setText(dateFinal);
     }
 
-    //method to update battery view
+    // Method to update battery view
     public void updateBattery(int batteryLevel) {
-        battery.setText(String.valueOf(batteryLevel) + "% Battery");
+        battery.setText(String.valueOf(batteryLevel) + "% " +
+            getResources().getString(R.string.battery_text));
 
-        //set text color depending on battery level
+        // Set text color depending on battery level
         if (batteryLevel > 15)
             battery.setTextColor(getResources().getColor(R.color.light_green));
 
@@ -584,9 +673,11 @@ public class LockActivity extends Activity implements View.OnClickListener, View
             battery.setTextColor(getResources().getColor(R.color.light_red));
     }
 
-    //returns the current battery level
+    // Returns the current battery level
     public int getBatteryLevel() {
-        Intent batteryIntent = getApplicationContext().registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+        Intent batteryIntent = getApplicationContext().registerReceiver(null,
+                new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+
         int level = -1;
 
         try {
@@ -600,7 +691,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     }
 
 
-    //method to turn wifi on or off
+    // Method to turn wifi on or off
     private void wifiOn(boolean enabled) {
         if (enabled) {
             wifiManager.setWifiEnabled(true);
@@ -614,9 +705,12 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     }
 
 
-    //method to turn mobile data on or off
-    private void mobileDataOn(boolean enabled) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        Method mobileDataMethod = ConnectivityManager.class.getDeclaredMethod("setMobileDataEnabled", boolean.class);
+    // Method to turn mobile data on or off
+    private void mobileDataOn(boolean enabled) throws NoSuchMethodException,
+            InvocationTargetException, IllegalAccessException {
+
+        Method mobileDataMethod = ConnectivityManager.class.getDeclaredMethod(
+                "setMobileDataEnabled", boolean.class);
 
         mobileDataMethod.setAccessible(true);
         mobileDataMethod.invoke(connManager, enabled);
@@ -629,7 +723,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     }
 
 
-    //method to get camera and it's parameters
+    // Method to get camera and it's parameters
     private void getCamera() {
         if (cam == null) {
             try {
@@ -649,7 +743,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
         }
     }
 
-    //method to stop camera preview and release
+    // Method to stop camera preview and release
     private void releaseCamera() {
         if (cam != null) {
             try {
@@ -664,7 +758,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
         }
     }
 
-    //method to turn flashlight on or off
+    // Method to turn flashlight on or off
     private void flashlightOn(boolean enabled) {
         if (enabled) {
             getCamera();
@@ -728,7 +822,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
             flashlight.setImageDrawable(getResources().getDrawable(R.drawable.ic_flashlight_on));
         }
 
-        //turn flashlight off
+        // Turn flashlight off
         else {
             if (cam == null || camParam == null) {
                 Toast toast = Toast.makeText(getApplicationContext(),
@@ -757,8 +851,8 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     }
 
 
-    //0 for '0', 1 for '80', 2 for '255' and 3 for auto
-    //method to change system brightness
+    // 0 for '0', 1 for '80', 2 for '255' and 3 for auto
+    // Method to change system brightness
     private void brightnessChange(int mode) {
         if (mode == 0) {
             if (brightness != null)
@@ -805,8 +899,8 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     }
 
 
-    //1 for 'normal', 2 for 'vibrate' and 3 for 'silent'
-    //method to change ringer mode
+    // 1 for 'normal', 2 for 'vibrate' and 3 for 'silent'
+    // Method to change ringer mode
     private void ringerChange(int mode) {
         if (mode == 1) {
             sound.setImageDrawable(getResources().getDrawable(R.drawable.ic_speaker));
@@ -825,7 +919,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     }
 
 
-    //method to check whether the package is the default home launcher or not
+    // Method to check whether the package is the default home launcher or not
     public boolean isMyLauncherDefault() {
         final IntentFilter launcherFilter = new IntentFilter(Intent.ACTION_MAIN);
         launcherFilter.addCategory(Intent.CATEGORY_HOME);
@@ -848,28 +942,29 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     }
 
 
-    //method called each time the user presses a keypad button
+    // Method called each time the user presses a keypad button
     public void checkPIN() {
         if (!pinLocked) {
             pinInput.setText(pinEntered);
 
             if (pinEntered.length() == pin.length()) {
-                //if correct PIN entered, reset pinEntered, remove handle callbacks and messages,
-                //set home launcher activity component disabled and finish
+                // If correct PIN entered, reset pinEntered, remove handle callbacks and messages,
+                // Set home launcher activity component disabled and finish
                 if (pinEntered.equals(pin)) {
                     pinEntered = "";
                     pinInput.setText(pinEntered);
 
                     mHandler.removeCallbacksAndMessages(null);
 
-                    packageManager.setComponentEnabledSetting(cnHome, componentDisabled, PackageManager.DONT_KILL_APP);
+                    packageManager.setComponentEnabledSetting(cnHome, componentDisabled,
+                            PackageManager.DONT_KILL_APP);
 
                     finish();
                     overridePendingTransition(0, 0);
                 }
 
-                //if incorrect PIN entered, reset drawable and pinEntered, lower pinAttempts
-                //vibrate and display 'Wrong PIN. Try again' for 1s
+                // If incorrect PIN entered, reset drawable and pinEntered, lower pinAttempts
+                // Vibrate and display 'Wrong PIN. Try again' for 1s
                 else {
                     if (pinAttempts > 0) {
                         pinAttempts -= 1;
@@ -880,17 +975,21 @@ public class LockActivity extends Activity implements View.OnClickListener, View
                         unlockText.postDelayed(new Runnable() {
                             @Override
                             public void run() {
-                                if (pinAttempts > 0) {
+                                if (pinAttempts >= 0) {
                                     if (nfcAdapter != null) {
                                         if (nfcAdapter.isEnabled())
-                                            unlockText.setText(getResources().getString(R.string.scan_to_unlock));
+                                            unlockText.setText("");
 
-                                        else
-                                            unlockText.setText(getResources().getString(R.string.scan_to_unlock_nfc_off));
+                                        else {
+                                            unlockText.setText(getResources().getString(
+                                                    R.string.scan_to_unlock_nfc_off));
+                                        }
                                     }
 
-                                    else
-                                        unlockText.setText(getResources().getString(R.string.scan_to_unlock_nfc_off));
+                                    else {
+                                        unlockText.setText(getResources().getString(
+                                                R.string.scan_to_unlock_nfc_off));
+                                    }
                                 }
                             }
                         }, 1000);
@@ -901,8 +1000,8 @@ public class LockActivity extends Activity implements View.OnClickListener, View
                         unlockText.setText(getResources().getString(R.string.wrong_pin));
                     }
 
-                    //0 attempts left, vibrate, reset pinEntered and pinAttempts,
-                    //set pinLocked to true, store and post reset PIN keypad runnable in 30s
+                    // 0 attempts left, vibrate, reset pinEntered and pinAttempts,
+                    // Set pinLocked to true, store and post reset PIN keypad runnable in 30s
                     else {
                         if (vibratorAvailable)
                             vibrator.vibrate(500);
@@ -945,7 +1044,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
 
     @Override
     public void onClick(View v) {
-        //if PIN keypad button pressed, add pressed number to pinEntered and call checkPin method
+        // If PIN keypad button pressed, add pressed number to pinEntered and call checkPin method
         if (v.getId() == R.id.ic_0) {
             if (pinEntered.length() < pin.length())
                 pinEntered += "0";
@@ -1016,7 +1115,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
             checkPIN();
         }
 
-        //if delete pressed, delete last element of pinEntered; if pinEntered is empty, do nothing
+        // If delete pressed, delete last element of pinEntered; if pinEntered is empty, do nothing
         else if (v.getId() == R.id.delete) {
             if (!pinLocked) {
                 if (pinEntered.length() > 0) {
@@ -1043,7 +1142,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
         }
 
 
-        //if wifi toolbox button pressed, enable/disable wifi
+        // If wifi toolbox button pressed, enable/disable wifi
         else if (v.getId() == R.id.wifi) {
             if (wifiManager.isWifiEnabled())
                 wifiOn(false);
@@ -1053,7 +1152,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
         }
 
 
-        //if data toolbox button pressed, enable/disable mobile data
+        // If data toolbox button pressed, enable/disable mobile data
         else if (v.getId() == R.id.data) {
             isMobileDataOn = connManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
 
@@ -1085,7 +1184,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
                 }
             }
 
-            //no mobile data detected, mostly in the case of SIM-less tablets
+            // No mobile data detected, mostly in the case of SIM-less tablets
             else {
                 Toast toast = Toast.makeText(getApplicationContext(),
                         R.string.toast_no_mobile_data,
@@ -1095,23 +1194,23 @@ public class LockActivity extends Activity implements View.OnClickListener, View
         }
 
 
-        //if flashlight toolbox button pressed, enable/disable flashlight
+        // If flashlight toolbox button pressed, enable/disable flashlight
         else if (v.getId() == R.id.flashlight) {
             if (flashlightAvailable) {
                 if (!isFlashOn) {
                     flashlightOn(true);
-                    //add window flag to keep screen on
+                    // Add window flag to keep screen on
                     this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
                 }
 
                 else if (isFlashOn) {
                     flashlightOn(false);
-                    //remove window flag that kept the screen on
+                    // Remove window flag that kept the screen on
                     this.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
                 }
             }
 
-            //toast user if flashlight not available
+            // Toast user if flashlight not available
             else {
                 Toast toast = Toast.makeText(getApplicationContext(),
                         R.string.toast_no_flashlight,
@@ -1121,9 +1220,9 @@ public class LockActivity extends Activity implements View.OnClickListener, View
         }
 
 
-        //if brightness toolbox button pressed, set brightness accordingly and change brightnessMode var
+        // If brightness toolbox button pressed, set brightness accordingly and change brightnessMode var
         else if (v.getId() == R.id.brightness) {
-            //if brightnessMode wasn't initialized, set to AUTO
+            // If brightnessMode wasn't initialized, set to AUTO
             if (brightnessMode == -1)
                 brightnessMode = 3;
 
@@ -1149,7 +1248,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
         }
 
 
-        //if sound toolbox button pressed, change ringer mode accordingly and change ringerMode var
+        // If sound toolbox button pressed, change ringer mode accordingly and change ringerMode var
         else if (v.getId() == R.id.sound) {
             if (ringerMode == 1) {
                 ringerChange(2);
@@ -1166,6 +1265,123 @@ public class LockActivity extends Activity implements View.OnClickListener, View
                 ringerMode = 1;
             }
         }
+
+
+        // If Phone button pressed, set boolean to true and toast user to unlock
+        else if (v.getId() == R.id.phone) {
+            phoneToOpen = true;
+            cameraToOpen = false;
+
+            Toast toast = Toast.makeText(getApplicationContext(),
+                    R.string.toast_phone_open,
+                    Toast.LENGTH_SHORT);
+            toast.show();
+        }
+
+
+        // If Camera button pressed, set boolean to true and toast user to unlock
+        else if (v.getId() == R.id.camera) {
+            cameraToOpen = true;
+            phoneToOpen = false;
+
+            Toast toast = Toast.makeText(getApplicationContext(),
+                    R.string.toast_camera_open,
+                    Toast.LENGTH_SHORT);
+            toast.show();
+        }
+
+
+        // If Up button pressed, hide camera, phone and up; animate toolbox up and show down button
+        else if (v.getId() == R.id.up) {
+            swipeUp();
+        }
+
+
+        // If down button pressed, hide down; animate toolbox down and show camera, phone and up
+        else if (v.getId() == R.id.down) {
+            swipeDown();
+        }
+    }
+
+
+    // Fling listener to detect swipe up/down, to toggle toolbox and phone/camera
+    @Override
+    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+        if (e1.getY() < e2.getY() && (e2.getY() - e1.getY()) > SWIPE_MIN_DIST) {
+            if (swipedDown)
+                return false;
+
+            swipedDown = true;
+            swipedUp = false;
+            swipeDown();
+        }
+
+        else if (e1.getY() > e2.getY() && (e1.getY() - e2.getY()) > SWIPE_MIN_DIST) {
+            if (swipedUp)
+                return false;
+
+            swipedUp = true;
+            swipedDown = false;
+            swipeUp();
+        }
+
+        return false;
+    }
+
+    // Hide up/phone/camera and animate toolbox up
+    private void swipeUp() {
+        up.startAnimation(fadeOut);
+        phone.startAnimation(fadeOut);
+        camera.startAnimation(fadeOut);
+
+        up.setVisibility(View.INVISIBLE);
+        phone.setVisibility(View.INVISIBLE);
+        camera.setVisibility(View.INVISIBLE);
+
+        toolboxFrame.startAnimation(slideUp);
+        toolboxFrame.setVisibility(View.VISIBLE);
+
+        wifi.startAnimation(fadeIn);
+        data.startAnimation(fadeIn);
+        flashlight.startAnimation(fadeIn);
+        brightness.startAnimation(fadeIn);
+        sound.startAnimation(fadeIn);
+
+        wifi.setVisibility(View.VISIBLE);
+        data.setVisibility(View.VISIBLE);
+        flashlight.setVisibility(View.VISIBLE);
+        brightness.setVisibility(View.VISIBLE);
+        sound.setVisibility(View.VISIBLE);
+
+        down.setVisibility(View.VISIBLE);
+    }
+
+    // Animate toolbox down and show up/phone/camera
+    private void swipeDown() {
+        down.setVisibility(View.INVISIBLE);
+
+        wifi.startAnimation(fadeOut);
+        data.startAnimation(fadeOut);
+        flashlight.startAnimation(fadeOut);
+        brightness.startAnimation(fadeOut);
+        sound.startAnimation(fadeOut);
+
+        wifi.setVisibility(View.INVISIBLE);
+        data.setVisibility(View.INVISIBLE);
+        flashlight.setVisibility(View.INVISIBLE);
+        brightness.setVisibility(View.INVISIBLE);
+        sound.setVisibility(View.INVISIBLE);
+
+        toolboxFrame.startAnimation(slideDown);
+        toolboxFrame.setVisibility(View.INVISIBLE);
+
+        up.startAnimation(fadeIn);
+        phone.startAnimation(fadeIn);
+        camera.startAnimation(fadeIn);
+
+        up.setVisibility(View.VISIBLE);
+        phone.setVisibility(View.VISIBLE);
+        camera.setVisibility(View.VISIBLE);
     }
 
 
@@ -1180,7 +1396,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
         }
     }
 
-    //if the user wants to leave the app like pressing recent apps button, move task to queue front
+    // If the user wants to leave the app like pressing recent apps button, move task to queue front
     @Override
     protected void onUserLeaveHint() {
         super.onUserLeaveHint();
@@ -1188,8 +1404,25 @@ public class LockActivity extends Activity implements View.OnClickListener, View
         activityManager.moveTaskToFront(taskId, 0);
     }
 
+    // Empty methods required for GestureListener
+    public boolean onDown(MotionEvent e) {
+        return false;
+    }
 
-    //if window touched, reset brightness and if touched outside window, move task to queue front
+    public void onShowPress(MotionEvent e) {}
+
+    public boolean onSingleTapUp(MotionEvent e) {
+        return false;
+    }
+
+    public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+        return false;
+    }
+
+    public void onLongPress(MotionEvent e) {}
+
+
+    // If window touched, reset brightness and if touched outside window, move task to queue front
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_OUTSIDE) {
@@ -1206,19 +1439,19 @@ public class LockActivity extends Activity implements View.OnClickListener, View
         if (event.getAction() == MotionEvent.ACTION_OUTSIDE) {
             activityManager.moveTaskToFront(taskId, 0);
 
-            return true;
+            return gestureDetector.onTouchEvent(event);
         }
 
-        return true;
+        return gestureDetector.onTouchEvent(event);
     }
 
 
     @Override
     public void onBackPressed() {
-        //if back button pressed, do nothing
+        // If back button pressed, do nothing
     }
 
-    //added for security safety, home key event detected. move task to queue front
+    // Added just to be safe; home key event detected - move task to queue front
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_HOME) {
@@ -1242,28 +1475,28 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     }
 
 
-    //call state listener
+    // Call state listener
     class StateListener extends PhoneStateListener {
         @Override
         public void onCallStateChanged(int state, String incomingNumber) {
             super.onCallStateChanged(state, incomingNumber);
 
             switch (state) {
-                //if state is ringing, set isPhoneCalling var to true and move task to back
+                // If state is ringing, set isPhoneCalling var to true and move task to back
                 case TelephonyManager.CALL_STATE_RINGING:
                     isPhoneCalling = true;
                     moveTaskToBack(true);
 
                     break;
 
-                //if state is offhook, set isPhoneCalling var to true and move task to back
+                // If state is offhook, set isPhoneCalling var to true and move task to back
                 case TelephonyManager.CALL_STATE_OFFHOOK:
                     isPhoneCalling = true;
                     moveTaskToBack(true);
 
                     break;
 
-                //if call stopped or idle and isPhoneCalling var is true, move task to queue front
+                // If call stopped or idle and isPhoneCalling var is true, move task to queue front
                 case TelephonyManager.CALL_STATE_IDLE:
                     if (isPhoneCalling) {
                         activityManager.moveTaskToFront(taskId, 0);
@@ -1277,18 +1510,22 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     }
 
 
-    //if activity resumed, enable NFC tag discovery
+    // If activity resumed, enable NFC tag discovery
     @Override
     protected void onResume() {
         super.onResume();
 
-        //re-enable home launcher activity component
-        if (packageManager != null)
-            packageManager.setComponentEnabledSetting(cnHome, componentEnabled, PackageManager.DONT_KILL_APP);
+        activityManager.moveTaskToFront(taskId, 0);
+
+        // Re-enable home launcher activity component
+        if (packageManager != null) {
+            packageManager.setComponentEnabledSetting(cnHome, componentEnabled,
+                    PackageManager.DONT_KILL_APP);
+        }
 
         if (nfcAdapter != null) {
             if (nfcAdapter.isEnabled()) {
-                //if Android version lower than 4.4, use foreground dispatch method with tech filters
+                // If Android version lower than 4.4, use foreground dispatch method with tech filters
                 if (Build.VERSION.SDK_INT < 19) {
                     nfcAdapter.enableForegroundDispatch(this, pIntent,
                             new IntentFilter[]{new IntentFilter(NfcAdapter.ACTION_TECH_DISCOVERED)},
@@ -1305,25 +1542,25 @@ public class LockActivity extends Activity implements View.OnClickListener, View
                     );
                 }
 
-                //if Android version 4.4 or bigger, use enableReaderMode method
+                // If Android version 4.4 or bigger, use enableReaderMode method
                 else {
                     nfcAdapter.enableReaderMode(this, new NfcAdapter.ReaderCallback() {
 
                         @Override
                         public void onTagDiscovered(Tag tag) {
-                            //get tag id and convert to readable string
+                            // Get tag id and convert to readable string
                             byte[] tagID = tag.getId();
                             String tagDiscovered = bytesToHex(tagID);
 
                             if (!tagDiscovered.equals("")) {
-                                //loop through added NFC tags
+                                // Loop through added NFC tags
                                 for (int i = 0; i < tags.length(); i++) {
                                     try {
-                                        //when tag discovered id is equal to one of the stored tags id
+                                        // When tag discovered id is equal to one of the stored tags id
                                         if (tagDiscovered.equals(tags.getJSONObject(i).getString("tagID"))) {
-                                            //reset tagDiscovered string, set pinLocked false and store
-                                            //remove handle callback and messages
-                                            //disable home launcher activity component and finish
+                                            // Reset tagDiscovered string, set pinLocked false and store
+                                            // Remove handle callback and messages
+                                            // Disable home launcher activity component and finish
 
                                             tagDiscovered = "";
 
@@ -1334,7 +1571,8 @@ public class LockActivity extends Activity implements View.OnClickListener, View
 
                                             mHandler.removeCallbacksAndMessages(null);
 
-                                            packageManager.setComponentEnabledSetting(cnHome, componentDisabled, PackageManager.DONT_KILL_APP);
+                                            packageManager.setComponentEnabledSetting(cnHome,
+                                                    componentDisabled, PackageManager.DONT_KILL_APP);
 
                                             finish();
                                             overridePendingTransition(0, 0);
@@ -1346,8 +1584,8 @@ public class LockActivity extends Activity implements View.OnClickListener, View
                                     }
                                 }
 
-                                //when tag discovered id is not correct
-                                //vibrate, display 'Wrong NFC Tag' and after 1.5s switch back to normal
+                                // When tag discovered id is not correct
+                                // Vibrate, display 'Wrong NFC Tag' and after 1.5s switch back to normal
                                 unlockText.postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
@@ -1355,14 +1593,17 @@ public class LockActivity extends Activity implements View.OnClickListener, View
                                             runOnUiThread(new Runnable() {
                                                 @Override
                                                 public void run() {
-                                                    unlockText.setText(getResources().getString(R.string.scan_to_unlock));
+                                                    unlockText.setText("");
                                                 }
                                             });
-                                        } else {
+                                        }
+
+                                        else {
                                             runOnUiThread(new Runnable() {
                                                 @Override
                                                 public void run() {
-                                                    unlockText.setText(getResources().getString(R.string.pin_locked));
+                                                    unlockText.setText(getResources().getString(
+                                                            R.string.pin_locked));
                                                 }
                                             });
                                         }
@@ -1382,11 +1623,12 @@ public class LockActivity extends Activity implements View.OnClickListener, View
                         }
                     }, NfcAdapter.FLAG_READER_NO_PLATFORM_SOUNDS | NfcAdapter.FLAG_READER_NFC_A |
                             NfcAdapter.FLAG_READER_NFC_B | NfcAdapter.FLAG_READER_NFC_BARCODE |
-                            NfcAdapter.FLAG_READER_NFC_F | NfcAdapter.FLAG_READER_NFC_V | NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK, null);
+                            NfcAdapter.FLAG_READER_NFC_F | NfcAdapter.FLAG_READER_NFC_V |
+                            NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK, null);
                 }
             }
 
-            //if NFC is off
+            // If NFC is off
             else {
                 if (pinLocked)
                     unlockText.setText(getResources().getString(R.string.pin_locked_nfc_off));
@@ -1396,7 +1638,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
             }
         }
 
-        //if NFC is off
+        // If NFC is off
         else {
             if (pinLocked)
                 unlockText.setText(getResources().getString(R.string.pin_locked_nfc_off));
@@ -1405,8 +1647,8 @@ public class LockActivity extends Activity implements View.OnClickListener, View
                 unlockText.setText(getResources().getString(R.string.scan_to_unlock_nfc_off));
         }
 
-        //check default launcher, if current package isn't the default one
-        //open the 'Select home app' dialog for user to pick default home launcher
+        // Check default launcher, if current package isn't the default one
+        // Open the 'Select home app' dialog for user to pick default home launcher
         if (!isMyLauncherDefault()) {
             packageManager.clearPackagePreferredActivities(getPackageName());
 
@@ -1427,7 +1669,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     }
 
 
-    //if activity offline or paused, disable NFC tag discovery and clear flag that kept screen on
+    // If activity offline or paused, disable NFC tag discovery and clear flag that kept screen on
     @Override
     protected void onPause() {
         super.onPause();
@@ -1451,15 +1693,17 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     }
 
 
-    //if activity finished and stopped, disable home launcher activity component,
-    //remove disableStatusBar view, clear window flags, unregister receiver, release the camera,
-    //set pinLocked false and store, reset brightness and screen timeout and remove handler callbacks
+    // If activity finished and stopped, disable home launcher activity component,
+    // Remove disableStatusBar view, clear window flags, unregister receiver, release the camera,
+    // Set pinLocked false and store, reset brightness and screen timeout and remove handler callbacks
     @Override
     protected void onDestroy() {
         super.onDestroy();
 
-        if (packageManager != null)
-            packageManager.setComponentEnabledSetting(cnHome, componentDisabled, PackageManager.DONT_KILL_APP);
+        if (packageManager != null) {
+            packageManager.setComponentEnabledSetting(cnHome, componentDisabled,
+                    PackageManager.DONT_KILL_APP);
+        }
 
         if (wm != null) {
             try {
@@ -1474,6 +1718,7 @@ public class LockActivity extends Activity implements View.OnClickListener, View
 
         try {
             unregisterReceiver(mChangeReceiver);
+            unregisterReceiver(mAlarmReceiver);
 
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
@@ -1501,40 +1746,76 @@ public class LockActivity extends Activity implements View.OnClickListener, View
 
         writeToJSON();
 
-        //reset screen timeout to initial
+        // Reset screen timeout to initial
         if (cResolver != null && systemScreenTimeout != -1)
             Settings.System.putInt(cResolver, Settings.System.SCREEN_OFF_TIMEOUT, systemScreenTimeout);
 
-        //remove all handler callbacks
+        // Remove all handler callbacks
         mHandler.removeCallbacksAndMessages(null);
+
+        // If Phone button pressed, start default Phone app after 300ms delay
+        if (phoneToOpen) {
+            phoneToOpen = false;
+
+            final Intent phoneIntent = new Intent(Intent.ACTION_DIAL);
+
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        startActivity(phoneIntent);
+
+                    } catch (ActivityNotFoundException anfe) {
+                        anfe.printStackTrace();
+                    }
+                }
+            }, 300);
+        }
+
+        // If Camera button pressed, start default Camera app after 300ms delay
+        if (cameraToOpen) {
+            cameraToOpen = false;
+
+            final Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        startActivity(cameraIntent);
+
+                    } catch (ActivityNotFoundException anfe) {
+                        anfe.printStackTrace();
+                    }
+                }
+            }, 300);
+        }
     }
 
 
-    //tag discovery for Android versions lower than 4.4
-    //if correct NFC tag detected, unlock device
-    //else, display wrong tag detected and vibrate
+    // Tag discovery for Android versions lower than 4.4
+    // If correct NFC tag detected, unlock device
+    // Else, display wrong tag detected and vibrate
     @Override
     protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-
         String action = intent.getAction();
 
         if (NfcAdapter.ACTION_TECH_DISCOVERED.equals(action)) {
             Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
 
-            //get tag id and convert to readable string
+            // Get tag id and convert to readable string
             byte[] tagID = tag.getId();
             String tagDiscovered = bytesToHex(tagID);
 
             if (!tagDiscovered.equals("")) {
-                //loop through added NFC tags
+                // Loop through added NFC tags
                 for (int i = 0; i < tags.length(); i++) {
-                    //when tag discovered id is equal to one of the stored tags id
+                    // When tag discovered id is equal to one of the stored tags id
                     try {
                         if (tagDiscovered.equals(tags.getJSONObject(i).getString("tagID"))) {
-                            //reset tagDiscovered string, set pinLocked false and store
-                            //remove handle callback and messages
-                            //disable home launcher activity component and finish
+                            // Reset tagDiscovered string, set pinLocked false and store
+                            // Remove handle callback and messages
+                            // Disable home launcher activity component and finish
 
                             tagDiscovered = "";
 
@@ -1545,7 +1826,8 @@ public class LockActivity extends Activity implements View.OnClickListener, View
 
                             mHandler.removeCallbacksAndMessages(null);
 
-                            packageManager.setComponentEnabledSetting(cnHome, componentDisabled, PackageManager.DONT_KILL_APP);
+                            packageManager.setComponentEnabledSetting(cnHome, componentDisabled,
+                                    PackageManager.DONT_KILL_APP);
 
                             finish();
                             overridePendingTransition(0, 0);
@@ -1557,13 +1839,13 @@ public class LockActivity extends Activity implements View.OnClickListener, View
                     }
                 }
 
-                //if wrong NFC tag id detected
-                //vibrate, display 'Wrong NFC Tag' and after 1.5s switch back to normal
+                // If wrong NFC tag id detected
+                // Vibrate, display 'Wrong NFC Tag' and after 1.5s switch back to normal
                 unlockText.postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         if (!pinLocked)
-                            unlockText.setText(getResources().getString(R.string.scan_to_unlock));
+                            unlockText.setText("");
 
                         else
                             unlockText.setText(getResources().getString(R.string.pin_locked));
@@ -1579,10 +1861,10 @@ public class LockActivity extends Activity implements View.OnClickListener, View
     }
 
 
-    //char array for bytes to hex string method
+    // Char array for bytes to hex string method
     final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
 
-    //bytes to hex string method
+    // Bytes to hex string method
     public static String bytesToHex(byte[] bytes) {
         char[] hexChars = new char[bytes.length * 2];
 

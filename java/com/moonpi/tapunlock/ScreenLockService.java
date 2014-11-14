@@ -25,17 +25,17 @@ public class ScreenLockService extends Service {
 
         IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
 
-        //start receiver for SCREEN_OFF event
+        // Start receiver for SCREEN_OFF event
         mReceiver = new ScreenLockReceiver();
         registerReceiver(mReceiver, filter);
 
-        //create intent to start MainActivity when users presses persistent notification
+        // Create intent to start MainActivity when users presses persistent notification
         Intent notificationIntent = new Intent(this, MainActivity.class);
         PendingIntent pIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
 
         Bitmap largeIcon = BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher);
 
-        //create persistent notification when service is on (lockscreen is enabled)
+        // Create persistent notification when service is on (lockscreen is enabled)
         Notification notification = new Notification.Builder(this)
                 .setLargeIcon(largeIcon)
                 .setSmallIcon(R.drawable.ic_launcher)
@@ -45,7 +45,7 @@ public class ScreenLockService extends Service {
                 .setPriority(Notification.PRIORITY_MIN)
                 .build();
 
-        //start service in foreground with leet ID and show persistent notification
+        // Start service in foreground with leet ID and show persistent notification
         int FOREGROUND_ID = 1337;
         startForeground(FOREGROUND_ID, notification);
     }
@@ -61,7 +61,7 @@ public class ScreenLockService extends Service {
     public void onDestroy() {
         super.onDestroy();
 
-        //when service stopped, unregister the receiver
+        // When service stopped, unregister the receiver
         try {
             unregisterReceiver(mReceiver);
 
@@ -69,8 +69,8 @@ public class ScreenLockService extends Service {
             e.printStackTrace();
         }
 
-        //when service stopped, stop it from being in the foreground
-        //and remove persistent notification
+        // When service stopped, stop it from being in the foreground
+        // And remove persistent notification
         stopForeground(true);
     }
 }

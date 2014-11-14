@@ -21,8 +21,8 @@ import java.io.IOException;
 
 public class ImageUtils {
 
-    //Bitmap (blurring) function using ScriptIntrinsicBlur (API 17+), returns blurred Bitmap
-    //takes radius 1-25
+    // Bitmap (blurring) function using ScriptIntrinsicBlur (API 17+), returns blurred Bitmap
+    // Takes radius 1-25
     public static Bitmap fastBlur(Context context, Bitmap sentBitmap, int radius) {
         float BITMAP_SCALE = 0.1f;
         float BLUR_RADIUS = (float) radius;
@@ -69,7 +69,7 @@ public class ImageUtils {
     }
 
 
-    //Bitmap function that turns the passed 'drawable' into a Bitmap
+    // Bitmap function that turns the passed 'drawable' into a Bitmap
     public static Bitmap drawableToBitmap(Drawable drawable) {
         if (drawable instanceof BitmapDrawable) {
             return ((BitmapDrawable)drawable).getBitmap();
@@ -94,7 +94,7 @@ public class ImageUtils {
     }
 
 
-    //function to store passed Bitmap as .png on external storage
+    // Function to store passed Bitmap as .png on external storage
     public static boolean storeImage(Bitmap image) {
         if (isExternalStorageWritable()) {
             File pictureFile = new File(Environment.getExternalStorageDirectory() + "/TapUnlock/blurredWallpaper.png");
@@ -118,7 +118,7 @@ public class ImageUtils {
     }
 
 
-    //boolean function to check whether a blurred wallpaper png exists or not
+    // Boolean function to check whether a blurred wallpaper png exists or not
     public static boolean doesBlurredWallpaperExist() {
         File blurredWallpaper = new File(Environment.getExternalStorageDirectory() + "/TapUnlock/blurredWallpaper.png");
 
@@ -126,7 +126,7 @@ public class ImageUtils {
     }
 
 
-    //Drawable function that returns the blurred wallpaper png as Drawable
+    // Drawable function that returns the blurred wallpaper png as Drawable
     public static Drawable retrieveWallpaperDrawable() {
         if (isExternalStorageReadable())
             return Drawable.createFromPath(Environment.getExternalStorageDirectory() + "/TapUnlock/blurredWallpaper.png");
@@ -135,14 +135,14 @@ public class ImageUtils {
     }
 
 
-    //return true if external storage is writable, false otherwise
+    // Return true if external storage is writable, false otherwise
     public static boolean isExternalStorageWritable() {
         String state = Environment.getExternalStorageState();
 
         return Environment.MEDIA_MOUNTED.equals(state);
     }
 
-    //return true if external storage is readable, false otherwise
+    // Return true if external storage is readable, false otherwise
     public static boolean isExternalStorageReadable() {
         String state = Environment.getExternalStorageState();
 
