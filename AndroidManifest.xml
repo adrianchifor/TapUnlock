@@ -10,6 +10,27 @@
 
     <supports-screens
         android:xlargeScreens="false" />
+        
+    <!--
+    android.permission.ACCESS_NETWORK_STATE - For checking if mobile data is on or off (used in mobile data toolbox button)
+    android.permission.ACCESS_WIFI_STATE - For checking if wifi is on or off (used in wifi toolbox button)
+    android.permission.CAMERA - For turning on/off the LED flash (used in flashlight toolbox button)
+    android.permission.CHANGE_NETWORK_STATE - For turning on/off mobile data (used in mobile data toolbox button)
+    android.permission.CHANGE_WIFI_STATE - For turning on/off wifi (used in wifi toolbox button)
+    android.permission.DISABLE_KEYGUARD - For disabling stock Android lockscreen if it's 'Swipe'
+    android.permission.INTERNET - Used to communicate with Google servers when donation in-app purchases are started/finished
+    android.permission.MODIFY_AUDIO_SETTINGS - For changing the audio mode (used in sound toolbox button)
+    android.permission.NFC - Self-explanatory
+    android.permission.READ_EXTERNAL_STORAGE - For reading the blurred wallpaper stored on external storage
+    android.permission.READ_PHONE_STATE - For checking if phone is ringing or not (so the lockscreen knows when to go to background)
+    android.permission.RECEIVE_BOOT_COMPLETED - For starting the lockscreen when device has booted
+    android.permission.REORDER_TASKS - To disable the recent tasks button (if detected, send lockscreen to front)
+    android.permission.SYSTEM_ALERT_WINDOW - To disable status bar
+    android.permission.VIBRATE - Self-explanatory
+    android.permission.WRITE_EXTERNAL_STORAGE - For writing the blurred wallpaper to external storage
+    android.permission.WRITE_SETTINGS - For modifying screen-timeout values
+    com.android.vending.BILLING - Used in in-app-billing for donations used in main app
+    -->
 
     <uses-permission android:name="android.permission.NFC" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
@@ -28,7 +49,7 @@
     <uses-permission android:name="android.permission.REORDER_TASKS" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="com.android.vending.BILLING" />
+    <!-- <uses-permission android:name="com.android.vending.BILLING" /> - Used in main app -->
 
     <uses-feature
         android:name="android.hardware.nfc"
