@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">TapUnlock</string>
+    <string name="title_activity_lock">NFC Lockscreen</string>
+    <!-- -->
+    <string name="scan_to_unlock_nfc_off">NFC nicht verfügbar. Gib PIN ein.</string>
+    <string name="wrong_tag">Falscher NFC Tag</string>
+    <string name="wrong_pin">Falsche PIN. Probiere es nocheinmal</string>
+    <string name="pin_locked">PIN für 30s gesperrt. Scan NFC Tag</string>
+    <string name="pin_locked_nfc_off">PIN für 30s gesperrt.</string>
+    <string name="time_text_no_time">13:37</string>
+    <string name="date_text_no_date">Mon 4 May</string>
+    <string name="battery_text_no_battery">60% Akku</string>
+    <string name="battery_text">Akku</string>
+    <string name="delete">Löschen</string>
+    <string name="zero_button_content">Null</string>
+    <string name="one_button_content">Eins</string>
+    <string name="two_button_content">Zwei</string>
+    <string name="three_button_content">Drei</string>
+    <string name="four_button_content">Vier</string>
+    <string name="five_button_content">Fünf</string>
+    <string name="six_button_content">Sechs</string>
+    <string name="seven_button_content">Sieben</string>
+    <string name="eight_button_content">Acht</string>
+    <string name="nine_button_content">Neun</string>
+    <string name="delete_button_content">Löschen</string>
+    <string name="wifi_button_content">WLAN</string>
+    <string name="mobile_button_content">Mobile Daten</string>
+    <string name="flashlight_button_content">Taschenlampe</string>
+    <string name="brightness_button_content">Helligkeit</string>
+    <string name="speaker_button_content">Sound Modus</string>
+    <string name="phone_button_content">Telefon</string>
+    <string name="camera_button_content">Kamera</string>
+    <string name="up_button_content">Zeige Werkzeuge</string>
+    <string name="down_button_content">Verstecke Werkzeuge</string>
+    <!-- -->
+    <string name="pin">PIN: </string>
+    <string name="enter_pin_hint">Gebe PIN ein</string>
+    <string name="ok_description">Knopf um die PIN zu setzen</string>
+    <string name="nfc_lockscreen">NFC Lockscreen</string>
+    <string name="lockscreen_enabled_disabled">Lockscreen</string>
+    <string name="lockscreen_enabled">aktiv</string>
+    <string name="lockscreen_disabled">inaktiv</string>
+    <string name="background_blur_title">NFC Lockscreen Hintergrund blur</string>
+    <string name="background_blur_message">Blur Stufe:</string>
+    <string name="background_blur_button_refresh">Wallpaper aktualisieren</string>
+    <string name="nfc_tags">NFC Tags</string>
+    <string name="no_nfc_tags">Press \'+\' to add Tags</string>
+    <!-- -->
+    <string name="scan_tag_dialog_title">Scan NFC Tag</string>
+    <string name="set_tag_name_dialog_title">NFC Tag Benennung</string>
+    <string name="set_tag_name_dialog_hint">Gebe NFC Tag Benennung ein</string>
+    <string name="nfc_off_dialog_title">NFC ist ausgeschaltet</string>
+    <string name="nfc_off_dialog_message">NFC scheint ausgeschaltet zu sein. Willst du es einschalten?
+        (\'Ja\' wird die NFC Einstellungen starten)</string>
+    <string name="rate_app_dialog_title">Beurteile die App</string>
+    <string name="rate_app_dialog_message">Open app in Play Store?
+        (Danke für eine Beurteilung! Wir würden uns sehr freuen!)</string>
+    <string name="launcher_dialog_title">Wähle Launcher aus</string>
+    <string name="set_pin_confirmation">Bist du sicher, daß du diese PIN setzen möchtest?</string>
+    <string name="rename_tag_dialog_title">NFC Tag umbenennen</string>
+    <string name="rename_tag_dialog_button">Umbenennen</string>
+    <!-- -->
+    <string name="yes_button">Ja</string>
+    <string name="ok_button">OK</string>
+    <string name="no_button">Nein</string>
+    <!-- -->
+    <string name="toast_pin_set">PIN erfolgreich gesetzt</string>
+    <string name="toast_pin_needs4digits">Die PIN muss mindestens 4 Stellen lang sein</string>
+    <string name="toast_lock_set_pin">Bitte eine PIN setzen, bevor du den Lockscreen aktivierst.</string>
+    <string name="toast_lock_add_tag">Bitte einen TAG hinzufügen, bevor du den Lockscreen aktivierst.</string>
+    <string name="toast_lock_enabled">NFC Lockscreen aktiviert.</string>
+    <string name="toast_lock_disabled">NFC Lockscreen deaktiviert.</string>
+    <string name="toast_tag_added">NFC Tag erfolgreich hinzugefügt.</string>
+    <string name="toast_tag_renamed">NFC Tag erfolgreich umbenenannt.</string>
+    <string name="toast_tag_deleted">NFC Tag erfolgreich gelöscht.</string>
+    <string name="toast_no_flashlight">LED Taschenlampe nicht verfügbar.</string>
+    <string name="toast_no_mobile_data">Mobile Daten nicht verfügbar.</string>
+    <string name="toast_launcher_dialog">Wähle \'NFC Lockscreen\' aus und drücke \'Immer\'
+        für größtmögliche Sicherheit.</string>
+    <string name="toast_wallpaper_refreshed">Wallpaper erfolgreiche aktualisiert.</string>
+    <string name="toast_wallpaper_not_refreshed">AKtualisierung des Wallpapers fehlgeschlagen.</string>
+    <string name="toast_cannot_blur">Blurfunktion benötigt Android 4.2 oder höher.</string>
+    <string name="toast_camera_failed">Failed to get Camera flashlight</string>
+    <string name="toast_phone_open">Für das Telefon entsperren.</string>
+    <string name="toast_camera_open">Für die Kamera entsperren.</string>
+    <!-- -->
+    <string name="notification_text">NFC Lockscreen ist aktiviert.</string>
+    <!-- -->
+    <string name="rename_context_menu">Tag umbenennen</string>
+    <string name="delete_context_menu">Tag löschen</string>
+    <string name="delete_context_menu_dialog1">Bist du sicher, daß du löschen willst?</string>
+    <string name="delete_context_menu_dialog2">Bist du sicher, daß du diesen Tag löschen willst?</string>
+    <string name="no_tag_name">Tag</string>
+    <string name="long_press_context">Zum Umbenennen oder Löschen lange drücken.</string>
+    <string name="new_tag_description">Neuen Tag hinzufügen</string>
+    <string name="scan_tag_description">Scan NFC Tag Bild</string>
+
+</resources>
