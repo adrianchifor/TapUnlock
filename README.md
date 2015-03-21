@@ -2,6 +2,8 @@
 
 [TapUnlock](https://play.google.com/store/apps/details?id=com.moonpi.tapunlock) is an NFC-enabled lockscreen for Android with a focus on speed, simplicity and security. For more info, screenshots and FAQs visit the [Google Play Store](https://play.google.com/store/apps/details?id=com.moonpi.tapunlock).
 
+Temporarly unpublished from PlayStore. Will re-publish once major bugs are fixed.
+
 This repo contains the official source code for TapUnlock.
 
 Current app version is 2.1.0 beta.
