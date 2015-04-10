@@ -10,7 +10,7 @@ Current app version is 2.1.0 beta.
 
 ### License
 
-Copyright &copy; 2014 MoonPi
+Copyright &copy; 2015 MoonPi
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 
