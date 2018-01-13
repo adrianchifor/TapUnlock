@@ -4,7 +4,7 @@ This project is no longer maintained.
 
 ### License
 
-Copyright &copy; 2017 Adrian Chifor
+Copyright &copy; 2018 Adrian Chifor
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 
