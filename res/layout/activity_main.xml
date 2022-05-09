@@ -367,6 +367,7 @@
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:text="@string/no_nfc_tags"
             android:id="@+id/noTags"
+            android:textColor="#646464"
             android:layout_below="@+id/NFCTagsSeparator"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="15dp"
