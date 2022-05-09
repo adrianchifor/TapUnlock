@@ -371,7 +371,6 @@
             android:layout_below="@+id/NFCTagsSeparator"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="15dp"
-            android:textColor="#696969"
             android:visibility="invisible" />
 
     </RelativeLayout>
